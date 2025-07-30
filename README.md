@@ -1,5 +1,5 @@
 # Frontend ERP + CRM - React + TypeScript + Vite
-
+EM DESENVOLVIMENTO!!!!
 Sistema frontend para o ERP + CRM genérico, desenvolvido com tecnologias modernas para uma experiência de usuário fluida e responsiva.
 
 ## 🚀 Tecnologias Utilizadas
