@@ -148,11 +148,11 @@ const UserSearch: React.FC<UserSearchProps> = ({
 
     // Validação básica
     if (!editingUser.name.trim()) {
-      alert('❌ Nome é obrigatório!');
+      alert(' Nome é obrigatório!');
       return;
     }
     if (!editingUser.email.trim()) {
-      alert('❌ Email é obrigatório!');
+      alert(' Email é obrigatório!');
       return;
     }
 
@@ -207,15 +207,15 @@ const UserSearch: React.FC<UserSearchProps> = ({
         
         // Callback opcional para o componente pai
         if (onUserSelect) {
-          onUserSelect(updatedUser);
+         // onUserSelect(updatedUser);
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Erro ao salvar usuário:', response.status, errorData);
+        console.error(' Erro ao salvar usuário:', response.status, errorData);
         alert(`Erro ao salvar usuário: ${errorData.message || errorData.error || 'Erro desconhecido'}`);
       }
     } catch (error) {
-      console.error('🔥 Erro de conexão:', error);
+      console.error(' Erro de conexão:', error);
       alert('Erro de conexão ao salvar usuário. Verifique se o backend Spring Boot está rodando.');
     }
   };
