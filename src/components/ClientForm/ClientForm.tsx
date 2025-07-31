@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 
 interface ClientData {
   name: string;
@@ -260,7 +261,11 @@ const styles = {
   } as React.CSSProperties
 };
 
-const ClientRegistrationForm: React.FC = () => {
+interface ClientFormProps {
+  user?: ClientData; // dados recebidos para edição 
+}
+
+const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
   const [formData, setFormData] = useState<ClientData>({
     name: '',
     email: '',
@@ -272,6 +277,19 @@ const ClientRegistrationForm: React.FC = () => {
     observations: '',
     photo: undefined
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        ...user,
+        income: user.income || 0,
+        numOfDependents: user.numOfDependents || 0
+      });
+      if (user.photo) {
+        setPhotoPreview(user.photo);
+      }
+    }
+  }, [user]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);

@@ -5,9 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  css: {
-    postcss: false, // Desabilita PostCSS completamente
-  },
+ 
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

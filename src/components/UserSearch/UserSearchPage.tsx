@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import styles from './UserSearch.module.css';
 
 // Tipos definidos no próprio arquivo
 interface User {
@@ -28,182 +29,6 @@ interface UserSearchProps {
   maxResults?: number;
 }
 
-const theme = {
-  colors: {
-    primary: '#007bff',
-    secondary: '#6c757d',
-    success: '#28a745',
-    warning: '#ffc107',
-    background: '#f5f5f5',
-    white: '#ffffff',
-    border: '#ddd',
-    text: '#333',
-    textLight: '#666',
-    lightGray: '#f8f9fa'
-  },
-  spacing: {
-    xs: '5px',
-    sm: '10px',
-    md: '15px',
-    lg: '20px',
-    xl: '30px'
-  }
-};
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: theme.colors.background,
-    padding: theme.spacing.lg,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-  } as React.CSSProperties,
-
-  pageContainer: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    backgroundColor: theme.colors.white,
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-    padding: theme.spacing.xl
-  } as React.CSSProperties,
-
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    borderBottom: `2px solid ${theme.colors.border}`,
-    paddingBottom: theme.spacing.lg
-  } as React.CSSProperties,
-
-  title: {
-    fontSize: '28px',
-    color: theme.colors.text,
-    margin: 0,
-    fontWeight: 'bold'
-  } as React.CSSProperties,
-
-  searchSection: {
-    backgroundColor: theme.colors.lightGray,
-    padding: theme.spacing.lg,
-    borderRadius: '8px',
-    marginBottom: theme.spacing.xl
-  } as React.CSSProperties,
-
-  searchGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr auto',
-    gap: theme.spacing.md,
-    alignItems: 'end'
-  } as React.CSSProperties,
-
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column' as const
-  } as React.CSSProperties,
-
-  label: {
-    fontSize: '14px',
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs
-  } as React.CSSProperties,
-
-  input: {
-    padding: theme.spacing.sm,
-    border: `1px solid ${theme.colors.border}`,
-    borderRadius: '4px',
-    fontSize: '14px'
-  } as React.CSSProperties,
-
-  select: {
-    padding: theme.spacing.sm,
-    border: `1px solid ${theme.colors.border}`,
-    borderRadius: '4px',
-    fontSize: '14px',
-    backgroundColor: theme.colors.white
-  } as React.CSSProperties,
-
-  button: {
-    padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    transition: 'background-color 0.2s'
-  } as React.CSSProperties,
-
-  primaryButton: {
-    backgroundColor: theme.colors.primary,
-    color: theme.colors.white
-  } as React.CSSProperties,
-
-  successButton: {
-    backgroundColor: theme.colors.success,
-    color: theme.colors.white
-  } as React.CSSProperties,
-
-  warningButton: {
-    backgroundColor: theme.colors.warning,
-    color: theme.colors.text
-  } as React.CSSProperties,
-
-  resultsHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.lg
-  } as React.CSSProperties,
-
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse' as const,
-    marginBottom: theme.spacing.lg
-  } as React.CSSProperties,
-
-  th: {
-    backgroundColor: theme.colors.lightGray,
-    padding: theme.spacing.md,
-    textAlign: 'left' as const,
-    borderBottom: `2px solid ${theme.colors.border}`,
-    fontWeight: 'bold',
-    fontSize: '14px'
-  } as React.CSSProperties,
-
-  td: {
-    padding: theme.spacing.md,
-    borderBottom: `1px solid ${theme.colors.border}`,
-    fontSize: '14px'
-  } as React.CSSProperties,
-
-  statusBadge: {
-    padding: '4px 8px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    textTransform: 'uppercase' as const
-  } as React.CSSProperties,
-
-  noResults: {
-    textAlign: 'center' as const,
-    padding: theme.spacing.xl,
-    color: theme.colors.textLight,
-    fontSize: '16px'
-  } as React.CSSProperties,
-
-  buttonGroup: {
-    display: 'flex',
-    gap: theme.spacing.sm
-  } as React.CSSProperties,
-
-  printSummary: {
-    display: 'none',
-    marginTop: theme.spacing.xl,
-    pageBreakBefore: 'always' as const
-  } as React.CSSProperties
-};
-
 const UserSearch: React.FC<UserSearchProps> = ({ 
   onUserSelect, 
   showActions = true, 
@@ -212,11 +37,15 @@ const UserSearch: React.FC<UserSearchProps> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     name: '',
     email: '',
     status: ''
   });
+
+  // URL base da API - ajuste conforme sua configuração
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   useEffect(() => {
     loadUsers();
@@ -229,18 +58,40 @@ const UserSearch: React.FC<UserSearchProps> = ({
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/users');
+      const response = await fetch(`${API_BASE_URL}/api/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
       if (response.ok) {
         const userData = await response.json();
-        setUsers(userData);
-        console.log('✅ Usuários carregados:', userData);
+        // Converter UserDTO para User se necessário
+        const convertedUsers = userData.map((userDto: any) => ({
+          id: userDto.id,
+          name: userDto.name,
+          email: userDto.email,
+          phone: userDto.phone || '',
+          address: userDto.address || '',
+          income: userDto.income || 0,
+          numOfDependents: userDto.numOfDependents || 0,
+          status: userDto.status || 'ATIVO',
+          observations: userDto.observations || '',
+          photo: userDto.photo || null
+        }));
+        
+        setUsers(convertedUsers);
+        console.log('✅ Usuários carregados da API Spring Boot:', convertedUsers);
       } else {
-        console.error('❌ Erro ao carregar usuários:', response.status);
-        alert('Erro ao carregar usuários');
+        console.error('❌ Erro ao carregar usuários da API:', response.status);
+        const errorText = await response.text();
+        console.error('Detalhes do erro:', errorText);
+        alert(`Erro ao carregar usuários: ${response.status} - ${errorText}`);
       }
     } catch (error) {
-      console.error('🔥 Erro:', error);
-      alert('Erro de conexão ao carregar usuários');
+      console.error('🔥 Erro de conexão com a API Spring Boot:', error);
+      alert('Erro de conexão com o servidor. Verifique se o backend está rodando em ' + API_BASE_URL);
     } finally {
       setLoading(false);
     }
@@ -267,9 +118,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
       );
     }
 
-    // Limitar resultados se especificado
     filtered = filtered.slice(0, maxResults);
-    
     setFilteredUsers(filtered);
   };
 
@@ -288,12 +137,127 @@ const UserSearch: React.FC<UserSearchProps> = ({
     });
   };
 
+  // FUNÇÃO: Editar usuário
+  const handleEditUser = (user: User) => {
+    setEditingUser({ ...user }); // Cria uma cópia para edição
+  };
+
+  // FUNÇÃO: Salvar usuário editado
+  const handleSaveUser = async () => {
+    if (!editingUser) return;
+
+    // Validação básica
+    if (!editingUser.name.trim()) {
+      alert('❌ Nome é obrigatório!');
+      return;
+    }
+    if (!editingUser.email.trim()) {
+      alert('❌ Email é obrigatório!');
+      return;
+    }
+
+    try {
+      // Converter User para UserDTO para enviar ao Spring Boot
+      const userDTO = {
+        name: editingUser.name,
+        email: editingUser.email,
+        phone: editingUser.phone,
+        address: editingUser.address,
+        income: editingUser.income,
+        numOfDependents: editingUser.numOfDependents,
+        status: editingUser.status,
+        observations: editingUser.observations,
+        photo: editingUser.photo
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userDTO),
+      });
+
+      if (response.ok) {
+        const updatedUserDTO = await response.json();
+        
+        // Converter de volta para User
+        const updatedUser: User = {
+          id: updatedUserDTO.id,
+          name: updatedUserDTO.name,
+          email: updatedUserDTO.email,
+          phone: updatedUserDTO.phone || '',
+          address: updatedUserDTO.address || '',
+          income: updatedUserDTO.income || 0,
+          numOfDependents: updatedUserDTO.numOfDependents || 0,
+          status: updatedUserDTO.status || 'ATIVO',
+          observations: updatedUserDTO.observations || '',
+          photo: updatedUserDTO.photo || null
+        };
+        
+        // Atualiza a lista local
+        setUsers(prevUsers => 
+          prevUsers.map(user => 
+            user.id === updatedUser.id ? updatedUser : user
+          )
+        );
+        
+        setEditingUser(null);
+        alert('✅ Usuário atualizado com sucesso!');
+        
+        // Callback opcional para o componente pai
+        if (onUserSelect) {
+          onUserSelect(updatedUser);
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Erro ao salvar usuário:', response.status, errorData);
+        alert(`Erro ao salvar usuário: ${errorData.message || errorData.error || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error('🔥 Erro de conexão:', error);
+      alert('Erro de conexão ao salvar usuário. Verifique se o backend Spring Boot está rodando.');
+    }
+  };
+
+  // FUNÇÃO: Excluir usuário
+  const handleDeleteUser = async (user: User) => {
+    if (!window.confirm(`Deseja realmente excluir o usuário "${user.name}"?\n\nEsta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/${user.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Remove da lista local
+        setUsers(prevUsers => 
+          prevUsers.filter(u => u.id !== user.id)
+        );
+        
+        alert('✅ Usuário excluído com sucesso!');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Erro ao excluir usuário:', response.status, errorData);
+        alert(`Erro ao excluir usuário: ${errorData.message || errorData.error || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error('🔥 Erro de conexão:', error);
+      alert('Erro de conexão ao excluir usuário. Verifique se o backend Spring Boot está rodando.');
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
 
   const exportToCSV = () => {
-    const headers = ['ID', 'Nome', 'Email', 'Telefone', 'Endereço', 'Renda', 'Dependentes', 'Status', 'Observações'];
+    const headers = ['ID', 'Nome', 'Email', 'Telefone', 'Endereço', 'Renda', 'Dependentes', 'Status', 'Observações', 'Foto URL'];
     const csvContent = [
       headers.join(','),
       ...filteredUsers.map(user => [
@@ -305,7 +269,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
         user.income,
         user.numOfDependents,
         user.status,
-        `"${user.observations || ''}"`
+        `"${user.observations || ''}"`,
+        `"${user.photo || ''}"`
       ].join(','))
     ].join('\n');
 
@@ -316,41 +281,547 @@ const UserSearch: React.FC<UserSearchProps> = ({
     link.click();
   };
 
-  const getStatusBadgeStyle = (status: string) => {
-    const baseStyle = styles.statusBadge;
+  // FUNÇÃO: Imprimir ficha individual do usuário
+  const printUserCard = (user: User) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Por favor, permita pop-ups para imprimir a ficha do usuário');
+      return;
+    }
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Ficha do Usuário - ${user.name}</title>
+        <style>
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none !important; }
+          }
+          
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+          }
+          
+          .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+          }
+          
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          
+          .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 28px;
+          }
+          
+          .header .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+          }
+          
+          .user-photo {
+            text-align: center;
+            margin-bottom: 25px;
+          }
+          
+          .user-photo img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #007bff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          }
+          
+          .user-photo .no-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #ccc;
+            border: 4px solid #ddd;
+          }
+          
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+          }
+          
+          .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+          }
+          
+          .info-item.full-width {
+            grid-column: 1 / -1;
+          }
+          
+          .info-label {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+          }
+          
+          .info-value {
+            font-size: 16px;
+            color: #333;
+          }
+          
+          .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          
+          .status-ativo { background: #d4edda; color: #155724; }
+          .status-inativo { background: #f8d7da; color: #721c24; }
+          .status-pendente { background: #fff3cd; color: #856404; }
+          .status-bloqueado { background: #d1ecf1; color: #0c5460; }
+          
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 12px;
+          }
+          
+          .print-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px;
+          }
+          
+          .print-button:hover {
+            background: #0056b3;
+          }
+          
+          @media (max-width: 600px) {
+            .info-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="header">
+            <h1>📋 Ficha do Usuário</h1>
+            <div class="subtitle">Dados Completos do Cliente</div>
+          </div>
+          
+          <div class="user-photo">
+            ${user.photo ? 
+              `<img src="${user.photo}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+               <div class="no-photo" style="display:none;">👤</div>` : 
+              `<div class="no-photo">👤</div>`
+            }
+          </div>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">ID do Usuário</div>
+              <div class="info-value">#${user.id}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">Status</div>
+              <div class="info-value">
+                <span class="status-badge status-${user.status.toLowerCase()}">${user.status}</span>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">Nome Completo</div>
+              <div class="info-value">${user.name}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">Email</div>
+              <div class="info-value">${user.email}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">Telefone</div>
+              <div class="info-value">${user.phone || 'Não informado'}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">Renda Mensal</div>
+              <div class="info-value">R$ ${user.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">Número de Dependentes</div>
+              <div class="info-value">${user.numOfDependents}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">Data de Impressão</div>
+              <div class="info-value">${new Date().toLocaleString('pt-BR')}</div>
+            </div>
+            
+            <div class="info-item full-width">
+              <div class="info-label">Endereço Completo</div>
+              <div class="info-value">${user.address || 'Não informado'}</div>
+            </div>
+            
+            ${user.observations ? `
+            <div class="info-item full-width">
+              <div class="info-label">Observações</div>
+              <div class="info-value">${user.observations}</div>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="footer">
+            <p>Este documento foi gerado automaticamente pelo sistema de gerenciamento de usuários.</p>
+            <p>Para informações adicionais, entre em contato com o suporte.</p>
+          </div>
+        </div>
+        
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+          <button class="print-button" onclick="window.print()">🖨️ Imprimir</button>
+          <button class="print-button" onclick="window.close()" style="background: #6c757d;">❌ Fechar</button>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
+  // FUNÇÃO: Imprimir todas as fichas dos usuários filtrados
+  const printAllUserCards = () => {
+    if (filteredUsers.length === 0) {
+      alert('Nenhum usuário para imprimir');
+      return;
+    }
+
+    if (filteredUsers.length > 10) {
+      if (!window.confirm(`Você está prestes a imprimir ${filteredUsers.length} fichas de usuários.\n\nIsso pode demorar um pouco. Deseja continuar?`)) {
+        return;
+      }
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Por favor, permita pop-ups para imprimir as fichas dos usuários');
+      return;
+    }
+
+    const generateUserCard = (user: User, isLast: boolean = false) => `
+      <div class="card" ${!isLast ? 'style="page-break-after: always;"' : ''}>
+        <div class="header">
+          <h1>📋 Ficha do Usuário</h1>
+          <div class="subtitle">Dados Completos do Cliente</div>
+        </div>
+        
+        <div class="user-photo">
+          ${user.photo ? 
+            `<img src="${user.photo}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+             <div class="no-photo" style="display:none;">👤</div>` : 
+            `<div class="no-photo">👤</div>`
+          }
+        </div>
+        
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">ID do Usuário</div>
+            <div class="info-value">#${user.id}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Status</div>
+            <div class="info-value">
+              <span class="status-badge status-${user.status.toLowerCase()}">${user.status}</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Nome Completo</div>
+            <div class="info-value">${user.name}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">${user.email}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Telefone</div>
+            <div class="info-value">${user.phone || 'Não informado'}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Renda Mensal</div>
+            <div class="info-value">R$ ${user.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Número de Dependentes</div>
+            <div class="info-value">${user.numOfDependents}</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Data de Impressão</div>
+            <div class="info-value">${new Date().toLocaleString('pt-BR')}</div>
+          </div>
+          
+          <div class="info-item full-width">
+            <div class="info-label">Endereço Completo</div>
+            <div class="info-value">${user.address || 'Não informado'}</div>
+          </div>
+          
+          ${user.observations ? `
+          <div class="info-item full-width">
+            <div class="info-label">Observações</div>
+            <div class="info-value">${user.observations}</div>
+          </div>
+          ` : ''}
+        </div>
+        
+        <div class="footer">
+          <p>Este documento foi gerado automaticamente pelo sistema de gerenciamento de usuários.</p>
+          <p>Para informações adicionais, entre em contato com o suporte.</p>
+        </div>
+      </div>
+    `;
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Fichas dos Usuários (${filteredUsers.length} usuários)</title>
+        <style>
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none !important; }
+          }
+          
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 10px;
+            background: #f5f5f5;
+          }
+          
+          .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            max-width: 100%;
+          }
+          
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+          }
+          
+          .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 24px;
+          }
+          
+          .header .subtitle {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+          }
+          
+          .user-photo {
+            text-align: center;
+            margin-bottom: 20px;
+          }
+          
+          .user-photo img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          }
+          
+          .user-photo .no-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #ccc;
+            border: 3px solid #ddd;
+          }
+          
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          
+          .info-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #007bff;
+          }
+          
+          .info-item.full-width {
+            grid-column: 1 / -1;
+          }
+          
+          .info-label {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+          }
+          
+          .info-value {
+            font-size: 14px;
+            color: #333;
+          }
+          
+          .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          
+          .status-ativo { background: #d4edda; color: #155724; }
+          .status-inativo { background: #f8d7da; color: #721c24; }
+          .status-pendente { background: #fff3cd; color: #856404; }
+          .status-bloqueado { background: #d1ecf1; color: #0c5460; }
+          
+          .footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 10px;
+          }
+          
+          .print-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px;
+          }
+          
+          .print-button:hover {
+            background: #0056b3;
+          }
+        </style>
+      </head>
+      <body>
+        ${filteredUsers.map((user, index) => generateUserCard(user, index === filteredUsers.length - 1)).join('')}
+        
+        <div class="no-print" style="text-align: center; margin-top: 20px; position: fixed; top: 10px; right: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+          <button class="print-button" onclick="window.print()">🖨️ Imprimir Todas (${filteredUsers.length})</button>
+          <button class="print-button" onclick="window.close()" style="background: #6c757d;">❌ Fechar</button>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'ATIVO':
-        return { ...baseStyle, backgroundColor: '#d4edda', color: '#155724' };
+        return styles.statusAtivo;
       case 'INATIVO':
-        return { ...baseStyle, backgroundColor: '#f8d7da', color: '#721c24' };
+        return styles.statusInativo;
       case 'PENDENTE':
-        return { ...baseStyle, backgroundColor: '#fff3cd', color: '#856404' };
+        return styles.statusPendente;
       case 'BLOQUEADO':
-        return { ...baseStyle, backgroundColor: '#d1ecf1', color: '#0c5460' };
+        return styles.statusBloqueado;
       default:
-        return baseStyle;
+        return styles.statusBadge;
     }
   };
 
   return (
     <>
-      <div style={styles.container}>
-        <div style={styles.pageContainer}>
+      <div className={styles.container}>
+        <div className={styles.pageContainer}>
           {/* Header */}
-          <div style={styles.header}>
-            <h1 style={styles.title}>👥 Busca e Relatório de Usuários</h1>
+          <div className={styles.header}>
+            <h1 className={styles.title}>👥 Busca e Relatório de Usuários</h1>
             {showActions && (
-              <div style={styles.buttonGroup}>
+              <div className={styles.buttonGroup}>
                 <button 
                   onClick={loadUsers} 
-                  style={{...styles.button, ...styles.primaryButton}}
+                  className={`${styles.button} ${styles.primaryButton}`}
                   disabled={loading}
                 >
                   🔄 {loading ? 'Carregando...' : 'Atualizar'}
                 </button>
                 <button 
                   onClick={handlePrint} 
-                  style={{...styles.button, ...styles.successButton}}
+                  className={`${styles.button} ${styles.successButton}`}
                 >
                   🖨️ Imprimir
                 </button>
@@ -359,37 +830,37 @@ const UserSearch: React.FC<UserSearchProps> = ({
           </div>
 
           {/* Search Section */}
-          <div style={styles.searchSection}>
-            <h3 style={{ margin: '0 0 15px 0', color: theme.colors.text }}>🔍 Filtros de Busca</h3>
-            <div style={styles.searchGrid}>
-              <div style={styles.inputGroup}>
-                <label style={styles.label}>Nome</label>
+          <div className={styles.searchSection}>
+            <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>🔍 Filtros de Busca</h3>
+            <div className={styles.searchGrid}>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Nome</label>
                 <input
                   type="text"
                   value={searchFilters.name}
                   onChange={(e) => handleFilterChange('name', e.target.value)}
                   placeholder="Buscar por nome..."
-                  style={styles.input}
+                  className={styles.input}
                 />
               </div>
 
-              <div style={styles.inputGroup}>
-                <label style={styles.label}>Email</label>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Email</label>
                 <input
                   type="email"
                   value={searchFilters.email}
                   onChange={(e) => handleFilterChange('email', e.target.value)}
                   placeholder="Buscar por email..."
-                  style={styles.input}
+                  className={styles.input}
                 />
               </div>
 
-              <div style={styles.inputGroup}>
-                <label style={styles.label}>Status</label>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Status</label>
                 <select
                   value={searchFilters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
-                  style={styles.select}
+                  className={styles.select}
                 >
                   <option value="">Todos os status</option>
                   <option value="ATIVO">Ativo</option>
@@ -401,7 +872,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
 
               <button 
                 onClick={clearFilters}
-                style={{...styles.button, ...styles.warningButton}}
+                className={`${styles.button} ${styles.warningButton}`}
               >
                 🗑️ Limpar
               </button>
@@ -409,78 +880,135 @@ const UserSearch: React.FC<UserSearchProps> = ({
           </div>
 
           {/* Results Header */}
-          <div style={styles.resultsHeader}>
-            <h3 style={{ margin: 0, color: theme.colors.text }}>
+          <div className={styles.resultsHeader}>
+            <h3 style={{ margin: 0, color: '#333' }}>
               📊 Resultados: {filteredUsers.length} usuário(s) encontrado(s)
             </h3>
             {showActions && (
-              <button 
-                onClick={exportToCSV}
-                style={{...styles.button, ...styles.successButton}}
-                disabled={filteredUsers.length === 0}
-              >
-                📥 Exportar CSV
-              </button>
+              <div className={styles.buttonGroup}>
+                <button 
+                  onClick={exportToCSV}
+                  className={`${styles.button} ${styles.successButton}`}
+                  disabled={filteredUsers.length === 0}
+                  title="Exportar dados para CSV incluindo URLs das fotos"
+                >
+                  📥 Exportar CSV
+                </button>
+                
+                <button 
+                  onClick={printAllUserCards}
+                  className={`${styles.button} ${styles.primaryButton}`}
+                  disabled={filteredUsers.length === 0}
+                  title="Imprimir fichas de todos os usuários filtrados"
+                >
+                  🖨️ Imprimir Fichas ({filteredUsers.length})
+                </button>
+              </div>
             )}
           </div>
 
           {/* Results Table */}
           {filteredUsers.length > 0 ? (
-            <table style={styles.table}>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th style={styles.th}>ID</th>
-                  <th style={styles.th}>Nome</th>
-                  <th style={styles.th}>Email</th>
-                  <th style={styles.th}>Telefone</th>
-                  <th style={styles.th}>Renda</th>
-                  <th style={styles.th}>Dependentes</th>
-                  <th style={styles.th}>Status</th>
-                  <th style={styles.th}>Observações</th>
+                  <th className={styles.th}>Foto</th> 
+                  <th className={styles.th}>ID</th>
+                  <th className={styles.th}>Nome</th>
+                  <th className={styles.th}>Email</th>
+                  <th className={styles.th}>Telefone</th>
+                  <th className={styles.th}>Renda</th>
+                  <th className={styles.th}>Dependentes</th>
+                  <th className={styles.th}>Status</th>
+                  <th className={styles.th}>Observações</th>
+                  {showActions && <th className={styles.th}>Ações</th>}
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr 
-                    key={user.id}
-                    onClick={() => onUserSelect?.(user)}
-                    style={{
-                      cursor: onUserSelect ? 'pointer' : 'default',
-                      backgroundColor: onUserSelect ? 'transparent' : undefined
-                    }}
-                  >
-                    <td style={styles.td}>{user.id}</td>
-                    <td style={styles.td}><strong>{user.name}</strong></td>
-                    <td style={styles.td}>{user.email}</td>
-                    <td style={styles.td}>{user.phone}</td>
-                    <td style={styles.td}>
+                  <tr key={user.id} style={{ userSelect: 'none' }}>
+                    <td className={styles.td}>
+                      {user.photo ? (
+                        <img
+                          src={user.photo}
+                          alt={`Foto de ${user.name}`}
+                          className={styles.userPhoto}
+                        />
+                      ) : (
+                        <span className={styles.noPhotoPlaceholder}>—</span>
+                      )}
+                    </td>
+                    <td className={styles.td}>{user.id}</td>
+                    <td className={styles.td}><strong>{user.name}</strong></td>
+                    <td className={styles.td}>{user.email}</td>
+                    <td className={styles.td}>{user.phone}</td>
+                    <td className={styles.td}>
                       R$ {user.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
-                    <td style={styles.td}>{user.numOfDependents}</td>
-                    <td style={styles.td}>
-                      <span style={getStatusBadgeStyle(user.status)}>
+                    <td className={styles.td}>{user.numOfDependents}</td>
+                    <td className={styles.td}>
+                      <span className={`${styles.statusBadge} ${getStatusBadgeClass(user.status)}`}>
                         {user.status}
                       </span>
                     </td>
-                    <td style={styles.td}>
+                    <td className={styles.td}>
                       {user.observations ? (
                         user.observations.length > 50 
                           ? `${user.observations.substring(0, 50)}...`
                           : user.observations
                       ) : '-'}
                     </td>
+                    {showActions && (
+                      <td className={styles.td} style={{ whiteSpace: 'nowrap' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditUser(user);
+                          }}
+                          title="Editar usuário"
+                          className={`${styles.actionButton} ${styles.editButton}`}
+                          aria-label={`Editar usuário ${user.name}`}
+                        >
+                          ✏️
+                        </button>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            printUserCard(user);
+                          }}
+                          title="Imprimir ficha do usuário"
+                          className={`${styles.actionButton} ${styles.printButton}`}
+                          aria-label={`Imprimir ficha de ${user.name}`}
+                        >
+                          🖨️
+                        </button>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteUser(user);
+                          }}
+                          title="Excluir usuário"
+                          className={`${styles.actionButton} ${styles.deleteButton}`}
+                          aria-label={`Excluir usuário ${user.name}`}
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <div style={styles.noResults}>
+            <div className={styles.noResults}>
               {loading ? '⏳ Carregando usuários...' : '📭 Nenhum usuário encontrado com os filtros aplicados'}
             </div>
           )}
 
           {/* Print Summary */}
-          <div style={styles.printSummary}>
+          <div className={styles.printSummary}>
             <h2>Relatório de Usuários</h2>
             <p><strong>Total de usuários:</strong> {filteredUsers.length}</p>
             <p><strong>Data do relatório:</strong> {new Date().toLocaleString('pt-BR')}</p>
@@ -495,46 +1023,150 @@ const UserSearch: React.FC<UserSearchProps> = ({
         </div>
       </div>
 
-      {/* Print Styles */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @media print {
-            body {
-              background-color: white !important;
-              margin: 0;
-            }
-            button {
-              display: none !important;
-            }
-            .printSummary {
-              display: block !important;
-            }
-            table {
-              font-size: 10px !important;
-            }
-            th, td {
-              padding: 5px !important;
-            }
-          }
-          
-          @media (max-width: 768px) {
-            .searchGrid {
-              grid-template-columns: 1fr !important;
-            }
-            .resultsHeader {
-              flex-direction: column !important;
-              gap: 10px !important;
-              align-items: flex-start !important;
-            }
-            table {
-              font-size: 12px !important;
-            }
-            th, td {
-              padding: 8px 4px !important;
-            }
-          }
-        `
-      }} />
+      {/* Modal de Edição */}
+      {editingUser && (
+        <div className={styles.modal} onClick={() => setEditingUser(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setEditingUser(null)}
+              className={styles.closeButton}
+              aria-label="Fechar modal"
+            >
+              ×
+            </button>
+
+            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>
+              ✏️ Editar Usuário
+            </h2>
+
+            <div className={styles.formGrid}>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Nome *</label>
+                <input
+                  type="text"
+                  value={editingUser.name}
+                  onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                  className={styles.input}
+                  required
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Email *</label>
+                <input
+                  type="email"
+                  value={editingUser.email}
+                  onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                  className={styles.input}
+                  required
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Telefone</label>
+                <input
+                  type="tel"
+                  value={editingUser.phone}
+                  onChange={(e) => setEditingUser({...editingUser, phone: e.target.value})}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Status</label>
+                <select
+                  value={editingUser.status}
+                  onChange={(e) => setEditingUser({...editingUser, status: e.target.value})}
+                  className={styles.select}
+                >
+                  <option value="ATIVO">Ativo</option>
+                  <option value="INATIVO">Inativo</option>
+                  <option value="PENDENTE">Pendente</option>
+                  <option value="BLOQUEADO">Bloqueado</option>
+                </select>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Renda</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editingUser.income}
+                  onChange={(e) => setEditingUser({...editingUser, income: parseFloat(e.target.value) || 0})}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Dependentes</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={editingUser.numOfDependents}
+                  onChange={(e) => setEditingUser({...editingUser, numOfDependents: parseInt(e.target.value) || 0})}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
+                <label className={styles.label}>Endereço</label>
+                <input
+                  type="text"
+                  value={editingUser.address}
+                  onChange={(e) => setEditingUser({...editingUser, address: e.target.value})}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
+                <label className={styles.label}>URL da Foto</label>
+                <input
+                  type="url"
+                  value={editingUser.photo || ''}
+                  onChange={(e) => setEditingUser({...editingUser, photo: e.target.value})}
+                  className={styles.input}
+                  placeholder="https://exemplo.com/foto.jpg"
+                />
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
+                <label className={styles.label}>Observações</label>
+                <textarea
+                  value={editingUser.observations || ''}
+                  onChange={(e) => setEditingUser({...editingUser, observations: e.target.value})}
+                  className={styles.textarea}
+                  placeholder="Observações sobre o usuário..."
+                />
+              </div>
+            </div>
+
+            <div className={styles.buttonGroup}>
+              <button
+                onClick={handleSaveUser}
+                className={`${styles.button} ${styles.successButton}`}
+                disabled={!editingUser.name || !editingUser.email}
+              >
+                💾 Salvar Alterações
+              </button>
+              
+              <button
+                onClick={() => printUserCard(editingUser)}
+                className={`${styles.button} ${styles.primaryButton}`}
+              >
+                🖨️ Imprimir Ficha
+              </button>
+              
+              <button
+                onClick={() => setEditingUser(null)}
+                className={`${styles.button} ${styles.warningButton}`}
+              >
+                ❌ Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
