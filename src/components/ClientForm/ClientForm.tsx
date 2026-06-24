@@ -1,16 +1,32 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
+import { getAuthHeaders, handleAuthError } from '../../utils/auth';
+
+interface Address {
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+interface Dependent {
+  name: string;
+  birthDate?: string;
+  age?: number;
+}
 
 interface ClientData {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  addressEntity: Address;
   income: number;
-  numOfDependents: number;
+  dependents: Dependent[];
   status: string;
   observations: string;
-  photo?: string;
+  photoPath?: string;
 }
 
 const theme = {
@@ -270,12 +286,12 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
     name: '',
     email: '',
     phone: '',
-    address: '',
+    addressEntity: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
     income: 0,
-    numOfDependents: 0,
+    dependents: [],
     status: '',
     observations: '',
-    photo: undefined
+    photoPath: undefined
   });
 
   useEffect(() => {
@@ -283,10 +299,11 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
       setFormData({
         ...user,
         income: user.income || 0,
-        numOfDependents: user.numOfDependents || 0
+        dependents: user.dependents || [],
+        addressEntity: user.addressEntity || { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' }
       });
-      if (user.photo) {
-        setPhotoPreview(user.photo);
+      if (user.photoPath) {
+        setPhotoPreview(user.photoPath);
       }
     }
   }, [user]);
@@ -296,10 +313,20 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'income' || name === 'numOfDependents' ? Number(value) : value
-    }));
+    if (['street', 'number', 'neighborhood', 'city', 'state', 'zipCode'].includes(name)) {
+      setFormData(prev => ({
+        ...prev,
+        addressEntity: {
+          ...prev.addressEntity,
+          [name]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'income' ? Number(value) : value
+      }));
+    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -309,7 +336,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
       reader.onload = () => {
         const result = reader.result as string;
         setPhotoPreview(result);
-        setFormData(prev => ({ ...prev, photo: result }));
+        setFormData(prev => ({ ...prev, photoPath: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -317,7 +344,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
 
   const handleSubmit = async () => {
     // Validação básica antes de enviar
-    if (!formData.name || !formData.email || !formData.phone || !formData.address || !formData.status) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.status) {
       alert('Por favor, preencha todos os campos obrigatórios (*)');
       return;
     }
@@ -327,14 +354,19 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
     try {
       console.log('🚀 Dados a serem enviados:', JSON.stringify(formData, null, 2));
       
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+      const url = user?.id ? `${API_BASE_URL}/api/users/${user.id}` : `${API_BASE_URL}/api/users`;
+      const method = user?.id ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
+
+      if (!response.ok) {
+        handleAuthError(response);
+      }
 
       console.log('📡 Status da resposta:', response.status);
 
@@ -370,12 +402,12 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
       name: '',
       email: '',
       phone: '',
-      address: '',
+      addressEntity: { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
       income: 0,
-      numOfDependents: 0,
+      dependents: [],
       status: '',
       observations: '',
-      photo: undefined
+      photoPath: undefined
     });
     setPhotoPreview(null);
   };
@@ -472,22 +504,89 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
                 <option value="ATIVO">Ativo</option>
                 <option value="INATIVO">Inativo</option>
                 <option value="PENDENTE">Pendente</option>
-                <option value="BLOQUEADO">Bloqueado</option>
               </select>
             </div>
           </div>
 
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Endereço *</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              required
-              style={styles.input}
-              placeholder="Rua, número, complemento, bairro, cidade - CEP"
-            />
+          <div style={styles.formGrid}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Rua / Logradouro *</label>
+              <input
+                type="text"
+                name="street"
+                value={formData.addressEntity.street}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="Ex: Rua das Flores"
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Número *</label>
+              <input
+                type="text"
+                name="number"
+                value={formData.addressEntity.number}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="Ex: 123"
+              />
+            </div>
+          </div>
+          
+          <div style={styles.formGrid}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Bairro *</label>
+              <input
+                type="text"
+                name="neighborhood"
+                value={formData.addressEntity.neighborhood}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="Ex: Centro"
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Cidade *</label>
+              <input
+                type="text"
+                name="city"
+                value={formData.addressEntity.city}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="Ex: São Paulo"
+              />
+            </div>
+          </div>
+          
+          <div style={styles.formGrid}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Estado *</label>
+              <input
+                type="text"
+                name="state"
+                value={formData.addressEntity.state}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="Ex: SP"
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>CEP *</label>
+              <input
+                type="text"
+                name="zipCode"
+                value={formData.addressEntity.zipCode}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="Ex: 00000-000"
+              />
+            </div>
           </div>
 
           {/* Financial Information */}
@@ -509,19 +608,77 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
                 />
               </div>
 
-              <div style={styles.inputGroup}>
-                <label style={styles.label}>Número de Dependentes *</label>
-                <input
-                  type="number"
-                  name="numOfDependents"
-                  value={formData.numOfDependents}
-                  onChange={handleInputChange}
-                  required
-                  min="0"
-                  style={styles.input}
-                  placeholder="0"
-                />
+            <div style={{...styles.financialSection, marginTop: '20px'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h2 style={styles.sectionTitle}>👨‍👩‍👧‍👦 Dependentes</h2>
+                <button 
+                  type="button" 
+                  onClick={() => setFormData(prev => ({ ...prev, dependents: [...prev.dependents, { name: '', birthDate: '' }] }))}
+                  style={{...styles.submitButton, padding: '8px 15px', fontSize: '14px', backgroundColor: '#28a745'}}
+                >
+                  ➕ Adicionar Dependente
+                </button>
               </div>
+
+              {formData.dependents.length === 0 ? (
+                <p style={{ color: '#666', fontSize: '14px', fontStyle: 'italic' }}>Nenhum dependente cadastrado.</p>
+              ) : (
+                formData.dependents.map((dependent, index) => {
+                  const age = dependent.birthDate ? 
+                    Math.floor((new Date().getTime() - new Date(dependent.birthDate).getTime()) / 31557600000) : 
+                    null;
+                    
+                  return (
+                    <div key={index} style={{ display: 'flex', gap: '15px', marginBottom: '15px', alignItems: 'flex-end', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                      <div style={{ flex: 2 }}>
+                        <label style={styles.label}>Nome do Dependente</label>
+                        <input
+                          type="text"
+                          value={dependent.name}
+                          onChange={(e) => {
+                            const newDeps = [...formData.dependents];
+                            newDeps[index].name = e.target.value;
+                            setFormData({ ...formData, dependents: newDeps });
+                          }}
+                          style={styles.input}
+                          placeholder="Nome completo"
+                        />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label style={styles.label}>Data de Nascimento</label>
+                        <input
+                          type="date"
+                          value={dependent.birthDate || ''}
+                          onChange={(e) => {
+                            const newDeps = [...formData.dependents];
+                            newDeps[index].birthDate = e.target.value;
+                            setFormData({ ...formData, dependents: newDeps });
+                          }}
+                          style={styles.input}
+                        />
+                      </div>
+                      <div style={{ width: '80px', textAlign: 'center', paddingBottom: '10px' }}>
+                        <span style={{ fontWeight: 'bold', color: '#555' }}>
+                          {age !== null && age >= 0 ? `${age} anos` : '-'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newDeps = [...formData.dependents];
+                          newDeps.splice(index, 1);
+                          setFormData({ ...formData, dependents: newDeps });
+                        }}
+                        style={{...styles.clearButton, padding: '10px', backgroundColor: '#dc3545', width: 'auto'}}
+                        title="Remover dependente"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
             </div>
           </div>
 
@@ -563,9 +720,12 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
               <div><strong>Nome:</strong> {formData.name}</div>
               <div><strong>Email:</strong> {formData.email}</div>
               <div><strong>Telefone:</strong> {formData.phone}</div>
-              <div><strong>Endereço:</strong> {formData.address}</div>
+              <div><strong>Endereço:</strong> {formData.addressEntity.street}, {formData.addressEntity.number} - {formData.addressEntity.city}/{formData.addressEntity.state}</div>
               <div><strong>Renda:</strong> R$ {formData.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-              <div><strong>Dependentes:</strong> {formData.numOfDependents}</div>
+              <div><strong>Dependentes:</strong> {formData.dependents.length} {formData.dependents.length > 0 ? `(${formData.dependents.map(d => {
+                const age = d.birthDate ? Math.floor((new Date().getTime() - new Date(d.birthDate).getTime()) / 31557600000) : null;
+                return age !== null && age >= 0 ? `${d.name} [${age} anos]` : d.name;
+              }).join(', ')})` : ''}</div>
               <div><strong>Status:</strong> {formData.status}</div>
             </div>
             {formData.observations && (

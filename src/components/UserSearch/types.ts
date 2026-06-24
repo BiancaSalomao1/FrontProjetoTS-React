@@ -1,14 +1,33 @@
+export interface Address {
+  id?: number;
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface Dependent {
+  id?: number;
+  name: string;
+  birthDate?: string;
+  age?: number;
+}
+
 export interface User {
-  id: number;
+  id?: number;
   name: string;
   email: string;
   phone: string;
-  address: string;
+  addressEntity: Address;
   income: number;
-  numOfDependents: number;
+  dependents: Dependent[];
   status: string;
   observations: string;
-  photo?: string;
+  photoPath?: string;
 }
 
 export interface SearchFilters {

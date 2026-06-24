@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import styles from './UserSearch.module.css';
+import { getAuthHeaders, handleAuthError } from '../../utils/auth';
 
 // Tipos definidos no próprio arquivo
+interface Address {
+  id?: number;
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+interface Dependent {
+  id?: number;
+  name: string;
+  birthDate?: string;
+}
+
 interface User {
-  id: number;
+  id?: number;
   name: string;
   email: string;
   phone: string;
-  address: string;
+  addressEntity: Address;
   income: number;
-  numOfDependents: number;
+  dependents: Dependent[];
   status: string;
   observations: string;
-  photo?: string;
+  photoPath?: string;
 }
 
 interface SearchFilters {
@@ -21,7 +38,7 @@ interface SearchFilters {
   status: string;
 }
 
-type UserStatus = 'ATIVO' | 'INATIVO' | 'PENDENTE' | 'BLOQUEADO';
+type UserStatus = 'ATIVO' | 'INATIVO' | 'PENDENTE';
 
 interface UserSearchProps {
   onUserSelect?: (user: User) => void;
@@ -60,9 +77,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
     try {
       const response = await fetch(`${API_BASE_URL}/api/users`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
       });
       
       if (response.ok) {
@@ -73,21 +88,19 @@ const UserSearch: React.FC<UserSearchProps> = ({
           name: userDto.name,
           email: userDto.email,
           phone: userDto.phone || '',
-          address: userDto.address || '',
+          addressEntity: userDto.addressEntity || { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
           income: userDto.income || 0,
-          numOfDependents: userDto.numOfDependents || 0,
+          dependents: userDto.dependents || [],
           status: userDto.status || 'ATIVO',
           observations: userDto.observations || '',
-          photo: userDto.photo || null
+          photoPath: userDto.photoPath || null
         }));
         
         setUsers(convertedUsers);
         console.log('✅ Usuários carregados da API Spring Boot:', convertedUsers);
       } else {
+        handleAuthError(response);
         console.error('❌ Erro ao carregar usuários da API:', response.status);
-        const errorText = await response.text();
-        console.error('Detalhes do erro:', errorText);
-        alert(`Erro ao carregar usuários: ${response.status} - ${errorText}`);
       }
     } catch (error) {
       console.error('🔥 Erro de conexão com a API Spring Boot:', error);
@@ -162,19 +175,17 @@ const UserSearch: React.FC<UserSearchProps> = ({
         name: editingUser.name,
         email: editingUser.email,
         phone: editingUser.phone,
-        address: editingUser.address,
+        addressEntity: editingUser.addressEntity,
         income: editingUser.income,
-        numOfDependents: editingUser.numOfDependents,
+        dependents: editingUser.dependents,
         status: editingUser.status,
         observations: editingUser.observations,
-        photo: editingUser.photo
+        photoPath: editingUser.photoPath
       };
 
       const response = await fetch(`${API_BASE_URL}/api/users/${editingUser.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(userDTO),
       });
 
@@ -187,12 +198,12 @@ const UserSearch: React.FC<UserSearchProps> = ({
           name: updatedUserDTO.name,
           email: updatedUserDTO.email,
           phone: updatedUserDTO.phone || '',
-          address: updatedUserDTO.address || '',
+          addressEntity: updatedUserDTO.addressEntity || { street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
           income: updatedUserDTO.income || 0,
-          numOfDependents: updatedUserDTO.numOfDependents || 0,
+          dependents: updatedUserDTO.dependents || [],
           status: updatedUserDTO.status || 'ATIVO',
           observations: updatedUserDTO.observations || '',
-          photo: updatedUserDTO.photo || null
+          photoPath: updatedUserDTO.photoPath || null
         };
         
         // Atualiza a lista local
@@ -210,6 +221,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
          // onUserSelect(updatedUser);
         }
       } else {
+        handleAuthError(response);
         const errorData = await response.json().catch(() => ({}));
         console.error(' Erro ao salvar usuário:', response.status, errorData);
         alert(`Erro ao salvar usuário: ${errorData.message || errorData.error || 'Erro desconhecido'}`);
@@ -229,9 +241,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/${user.id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
       });
 
       if (response.ok) {
@@ -242,6 +252,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
         
         alert('✅ Usuário excluído com sucesso!');
       } else {
+        handleAuthError(response);
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ Erro ao excluir usuário:', response.status, errorData);
         alert(`Erro ao excluir usuário: ${errorData.message || errorData.error || 'Erro desconhecido'}`);
@@ -265,12 +276,12 @@ const UserSearch: React.FC<UserSearchProps> = ({
         `"${user.name}"`,
         user.email,
         `"${user.phone}"`,
-        `"${user.address}"`,
+        `"${user.addressEntity.street}, ${user.addressEntity.number} - ${user.addressEntity.city}/${user.addressEntity.state}"`,
         user.income,
-        user.numOfDependents,
+        user.dependents.length,
         user.status,
         `"${user.observations || ''}"`,
-        `"${user.photo || ''}"`
+        `"${user.photoPath || ''}"`
       ].join(','))
     ].join('\n');
 
@@ -448,8 +459,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
           </div>
           
           <div class="user-photo">
-            ${user.photo ? 
-              `<img src="${user.photo}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+            ${user.photoPath ? 
+              `<img src="${user.photoPath}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
                <div class="no-photo" style="display:none;">👤</div>` : 
               `<div class="no-photo">👤</div>`
             }
@@ -490,7 +501,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
             
             <div class="info-item">
               <div class="info-label">Número de Dependentes</div>
-              <div class="info-value">${user.numOfDependents}</div>
+              <div class="info-value">${user.dependents.length}</div>
             </div>
             
             <div class="info-item">
@@ -500,7 +511,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
             
             <div class="info-item full-width">
               <div class="info-label">Endereço Completo</div>
-              <div class="info-value">${user.address || 'Não informado'}</div>
+              <div class="info-value">${user.addressEntity.street}, ${user.addressEntity.number} - ${user.addressEntity.neighborhood}, ${user.addressEntity.city}/${user.addressEntity.state} - CEP: ${user.addressEntity.zipCode}</div>
             </div>
             
             ${user.observations ? `
@@ -557,8 +568,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
         </div>
         
         <div class="user-photo">
-          ${user.photo ? 
-            `<img src="${user.photo}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+          ${user.photoPath ? 
+            `<img src="${user.photoPath}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
              <div class="no-photo" style="display:none;">👤</div>` : 
             `<div class="no-photo">👤</div>`
           }
@@ -599,7 +610,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
           
           <div class="info-item">
             <div class="info-label">Número de Dependentes</div>
-            <div class="info-value">${user.numOfDependents}</div>
+            <div class="info-value">${user.dependents.length}</div>
           </div>
           
           <div class="info-item">
@@ -609,7 +620,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
           
           <div class="info-item full-width">
             <div class="info-label">Endereço Completo</div>
-            <div class="info-value">${user.address || 'Não informado'}</div>
+            <div class="info-value">${user.addressEntity.street}, ${user.addressEntity.number} - ${user.addressEntity.neighborhood}, ${user.addressEntity.city}/${user.addressEntity.state} - CEP: ${user.addressEntity.zipCode}</div>
           </div>
           
           ${user.observations ? `
@@ -796,8 +807,6 @@ const UserSearch: React.FC<UserSearchProps> = ({
         return styles.statusInativo;
       case 'PENDENTE':
         return styles.statusPendente;
-      case 'BLOQUEADO':
-        return styles.statusBloqueado;
       default:
         return styles.statusBadge;
     }
@@ -866,7 +875,6 @@ const UserSearch: React.FC<UserSearchProps> = ({
                   <option value="ATIVO">Ativo</option>
                   <option value="INATIVO">Inativo</option>
                   <option value="PENDENTE">Pendente</option>
-                  <option value="BLOQUEADO">Bloqueado</option>
                 </select>
               </div>
 
@@ -928,9 +936,9 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 {filteredUsers.map((user) => (
                   <tr key={user.id} style={{ userSelect: 'none' }}>
                     <td className={styles.td}>
-                      {user.photo ? (
+                      {user.photoPath ? (
                         <img
-                          src={user.photo}
+                          src={user.photoPath}
                           alt={`Foto de ${user.name}`}
                           className={styles.userPhoto}
                         />
@@ -945,7 +953,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                     <td className={styles.td}>
                       R$ {user.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
-                    <td className={styles.td}>{user.numOfDependents}</td>
+                    <td className={styles.td}>{user.dependents.length}</td>
                     <td className={styles.td}>
                       <span className={`${styles.statusBadge} ${getStatusBadgeClass(user.status)}`}>
                         {user.status}
@@ -1082,7 +1090,6 @@ const UserSearch: React.FC<UserSearchProps> = ({
                   <option value="ATIVO">Ativo</option>
                   <option value="INATIVO">Inativo</option>
                   <option value="PENDENTE">Pendente</option>
-                  <option value="BLOQUEADO">Bloqueado</option>
                 </select>
               </div>
 
@@ -1098,23 +1105,84 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 />
               </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Dependentes</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={editingUser.numOfDependents}
-                  onChange={(e) => setEditingUser({...editingUser, numOfDependents: parseInt(e.target.value) || 0})}
-                  className={styles.input}
-                />
+              <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <label className={styles.label} style={{ marginBottom: 0 }}>Dependentes</label>
+                  <button 
+                    type="button" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingUser(prev => prev ? { ...prev, dependents: [...prev.dependents, { name: '', birthDate: '' }] } : null);
+                    }}
+                    style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                  >
+                    + Adicionar
+                  </button>
+                </div>
+                
+                {editingUser.dependents.length === 0 ? (
+                  <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic', margin: '5px 0' }}>Sem dependentes.</p>
+                ) : (
+                  editingUser.dependents.map((dependent, index) => {
+                    const age = dependent.birthDate ? Math.floor((new Date().getTime() - new Date(dependent.birthDate).getTime()) / 31557600000) : null;
+                    return (
+                      <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center', backgroundColor: '#f9f9f9', padding: '8px', borderRadius: '4px', border: '1px solid #eee' }}>
+                        <input
+                          type="text"
+                          value={dependent.name}
+                          onChange={(e) => {
+                            const newDeps = [...editingUser.dependents];
+                            newDeps[index].name = e.target.value;
+                            setEditingUser({ ...editingUser, dependents: newDeps });
+                          }}
+                          className={styles.input}
+                          placeholder="Nome"
+                          style={{ flex: 2, padding: '6px' }}
+                        />
+                        <input
+                          type="date"
+                          value={dependent.birthDate || ''}
+                          onChange={(e) => {
+                            const newDeps = [...editingUser.dependents];
+                            newDeps[index].birthDate = e.target.value;
+                            setEditingUser({ ...editingUser, dependents: newDeps });
+                          }}
+                          className={styles.input}
+                          style={{ flex: 1, padding: '6px' }}
+                        />
+                        <span style={{ fontSize: '12px', width: '40px', textAlign: 'center' }}>
+                          {age !== null && age >= 0 ? `${age}a` : '-'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newDeps = [...editingUser.dependents];
+                            newDeps.splice(index, 1);
+                            setEditingUser({ ...editingUser, dependents: newDeps });
+                          }}
+                          style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
               <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
-                <label className={styles.label}>Endereço</label>
+                <label className={styles.label}>Rua e Número</label>
                 <input
                   type="text"
-                  value={editingUser.address}
-                  onChange={(e) => setEditingUser({...editingUser, address: e.target.value})}
+                  value={`${editingUser.addressEntity.street}, ${editingUser.addressEntity.number}`}
+                  onChange={(e) => {
+                     const parts = e.target.value.split(',');
+                     setEditingUser({
+                        ...editingUser, 
+                        addressEntity: { ...editingUser.addressEntity, street: parts[0] || '', number: parts[1] ? parts[1].trim() : '' }
+                     });
+                  }}
                   className={styles.input}
                 />
               </div>
@@ -1123,8 +1191,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 <label className={styles.label}>URL da Foto</label>
                 <input
                   type="url"
-                  value={editingUser.photo || ''}
-                  onChange={(e) => setEditingUser({...editingUser, photo: e.target.value})}
+                  value={editingUser.photoPath || ''}
+                  onChange={(e) => setEditingUser({...editingUser, photoPath: e.target.value})}
                   className={styles.input}
                   placeholder="https://exemplo.com/foto.jpg"
                 />
