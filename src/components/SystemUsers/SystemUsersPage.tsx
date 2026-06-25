@@ -145,7 +145,7 @@ const SystemUsersPage: React.FC = () => {
           {isEditing ? 'Editar Credencial' : 'Nova Credencial de Acesso'}
         </h3>
         
-        <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
+        <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>
               Nome de Usuário (Login) *
@@ -158,6 +158,19 @@ const SystemUsersPage: React.FC = () => {
               style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
               required
             />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>
+              Nível de Acesso *
+            </label>
+            <select
+              value={formData.role || 'ADMIN'}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'white' }}
+            >
+              <option value="ADMIN">Administrador</option>
+              <option value="USER">Usuário (Assistente)</option>
+            </select>
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 'bold', color: '#475569' }}>

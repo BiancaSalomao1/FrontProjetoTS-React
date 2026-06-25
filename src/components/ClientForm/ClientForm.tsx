@@ -310,6 +310,37 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+
+  const fetchAddressByCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) return;
+
+    setCepLoading(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      if (!data.erro) {
+        setFormData(prev => ({
+          ...prev,
+          addressEntity: {
+            ...prev.addressEntity,
+            street: data.logradouro || prev.addressEntity.street,
+            neighborhood: data.bairro || prev.addressEntity.neighborhood,
+            city: data.localidade || prev.addressEntity.city,
+            state: data.uf || prev.addressEntity.state,
+            zipCode: cleanCep
+          }
+        }));
+      } else {
+        alert('CEP não encontrado. Verifique e tente novamente.');
+      }
+    } catch (err) {
+      console.error('Erro ao buscar CEP:', err);
+    } finally {
+      setCepLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -321,6 +352,13 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
           [name]: value
         }
       }));
+      // Auto-buscar endereço quando CEP for preenchido com 8 dígitos
+      if (name === 'zipCode') {
+        const cleanCep = value.replace(/\D/g, '');
+        if (cleanCep.length === 8) {
+          fetchAddressByCep(cleanCep);
+        }
+      }
     } else {
       setFormData(prev => ({
         ...prev,
@@ -379,10 +417,10 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
         const errorText = await response.text();
         console.error('❌ Erro do servidor:', errorText);
         
-        if (errorText.includes('duplicate key') || errorText.includes('already exists')) {
-          alert('Erro: Email já cadastrado! Use um email diferente.');
+        if (errorText.includes('duplicate key') || errorText.includes('already exists') || errorText.includes('DataIntegrityViolationException') || errorText.includes('23505') || errorText.includes('UK_6DOTKOTT2KJSP8VW4D0M25FB7_INDEX_4')) {
+          alert('Erro: Este e-mail já está cadastrado no sistema para outra família! Por favor, use um e-mail diferente.');
         } else {
-          alert(`Erro do servidor (${response.status}): Por favor, tente novamente.`);
+          alert(`Erro do servidor (${response.status}): Por favor, verifique se todos os dados estão corretos e tente novamente.`);
         }
       }
     } catch (error) {
@@ -509,6 +547,19 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
           </div>
 
           <div style={styles.formGrid}>
+            <div style={{...styles.inputGroup, position: 'relative'}}>
+              <label style={styles.label}>CEP *</label>
+              <input
+                type="text"
+                name="zipCode"
+                value={formData.addressEntity.zipCode}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="Ex: 00000-000"
+              />
+              {cepLoading && <span style={{position: 'absolute', right: '10px', top: '35px', fontSize: '0.8rem', color: '#6366f1'}}>Buscando...</span>}
+            </div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Rua / Logradouro *</label>
               <input
@@ -573,18 +624,6 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
                 required
                 style={styles.input}
                 placeholder="Ex: SP"
-              />
-            </div>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>CEP *</label>
-              <input
-                type="text"
-                name="zipCode"
-                value={formData.addressEntity.zipCode}
-                onChange={handleInputChange}
-                required
-                style={styles.input}
-                placeholder="Ex: 00000-000"
               />
             </div>
           </div>

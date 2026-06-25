@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import UserSearch from './components/UserSearch/UserSearchPage';
 import ClientForm from './components/ClientForm/ClientForm';
 import VisitHistoryPage from './components/VisitHistory/VisitHistoryPage';
@@ -49,6 +49,13 @@ function App() {
   const username = getLoggedInUsername() || 'Assistente';
   const userInitials = username.substring(0, 2).toUpperCase();
   const isAdmin = isAdminUser();
+
+  // Notifications State
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [newNotificationText, setNewNotificationText] = useState('');
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: 'Bem-vindo ao novo sistema de Gestão CRAS.', author: 'Sistema', time: '1h atrás' }
+  ]);
 
   // Dashboard Stats & Data
   const [stats, setStats] = useState({
@@ -220,7 +227,7 @@ function App() {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       {/* 1. Sidebar (Barra Lateral Esquerda) */}
-      <aside style={{
+      <aside className="no-print" style={{
         width: '280px',
         background: '#1e1b4b',
         color: '#f8fafc',
@@ -294,7 +301,7 @@ function App() {
 
           {/* Group: CADASTROS */}
           <div>
-            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase', tracking: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '16px' }}>
+            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '16px' }}>
               Cadastros
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -379,7 +386,7 @@ function App() {
 
           {/* Group: ATENDIMENTOS */}
           <div>
-            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase', tracking: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '16px' }}>
+            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '16px' }}>
               Atendimentos
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -426,7 +433,7 @@ function App() {
 
           {/* Group: CONFIGURAÇÕES */}
           <div>
-            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase', tracking: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '16px' }}>
+            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px', paddingLeft: '16px' }}>
               Configurações
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -523,7 +530,7 @@ function App() {
         minWidth: 0
       }}>
         {/* Top Header */}
-        <header style={{
+        <header className="no-print" style={{
           height: '70px',
           background: 'white',
           borderBottom: '1px solid #e2e8f0',
@@ -542,6 +549,11 @@ function App() {
             <input
               type="text"
               placeholder="Buscar usuários, famílias, visitas..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setCurrentPage('search');
+                }
+              }}
               style={{
                 width: '100%',
                 padding: '10px 12px 10px 36px',
@@ -561,27 +573,113 @@ function App() {
             gap: '24px'
           }}>
             {/* Notification Bell */}
-            <div style={{ position: 'relative', cursor: 'pointer' }}>
-              <span style={{ fontSize: '1.3rem' }}>🔔</span>
-              <span style={{
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                background: '#ef4444',
-                color: 'white',
-                fontSize: '0.65rem',
-                borderRadius: '50%',
-                width: '14px',
-                height: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold'
-              }}>1</span>
+            <div style={{ position: 'relative' }}>
+              <div 
+                style={{ cursor: 'pointer' }}
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <span style={{ fontSize: '1.3rem' }}>🔔</span>
+                {notifications.length > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-2px',
+                    right: '-2px',
+                    background: '#ef4444',
+                    color: 'white',
+                    fontSize: '0.65rem',
+                    borderRadius: '50%',
+                    width: '14px',
+                    height: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold'
+                  }}>{notifications.length}</span>
+                )}
+              </div>
+
+              {/* Notifications Dropdown Panel */}
+              {showNotifications && (
+                <div style={{
+                  position: 'absolute',
+                  top: '40px',
+                  right: '-10px',
+                  width: '320px',
+                  background: 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                  border: '1px solid #e2e8f0',
+                  zIndex: 50,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ background: '#f8fafc', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4 style={{ margin: 0, color: '#0f172a', fontSize: '0.95rem' }}>Avisos do Sistema</h4>
+                    {notifications.length > 0 && (
+                      <button onClick={() => setNotifications([])} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer' }}>Limpar</button>
+                    )}
+                  </div>
+                  
+                  <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                        Nenhuma notificação no momento.
+                      </div>
+                    ) : (
+                      notifications.map(notif => (
+                        <div key={notif.id} style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', position: 'relative' }}>
+                          <button 
+                            onClick={() => setNotifications(notifications.filter(n => n.id !== notif.id))}
+                            style={{ position: 'absolute', top: '10px', right: '12px', background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '0.8rem', padding: '4px' }}
+                            title="Apagar aviso"
+                          >
+                            ✖
+                          </button>
+                          <p style={{ margin: '0 0 4px 0', fontSize: '0.85rem', color: '#334155', paddingRight: '16px' }}>{notif.text}</p>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#94a3b8' }}>
+                            <span>Por: {notif.author}</span>
+                            <span>{notif.time}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {isAdmin && (
+                    <div style={{ background: '#f1f5f9', padding: '12px', borderTop: '1px solid #e2e8f0' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: '#475569', marginBottom: '6px' }}>Disparar Aviso Global</label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input 
+                          type="text" 
+                          value={newNotificationText}
+                          onChange={(e) => setNewNotificationText(e.target.value)}
+                          placeholder="Digite a mensagem..." 
+                          style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.8rem', outline: 'none' }}
+                        />
+                        <button 
+                          onClick={() => {
+                            if (!newNotificationText.trim()) return;
+                            setNotifications([{ id: Date.now(), text: newNotificationText, author: username, time: 'Agora' }, ...notifications]);
+                            setNewNotificationText('');
+                          }}
+                          style={{ background: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', padding: '0 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}
+                        >
+                          Enviar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Help Question mark */}
-            <div style={{ cursor: 'pointer', fontSize: '1.2rem', color: '#64748b' }}>❓</div>
+            <div 
+              style={{ cursor: 'pointer', fontSize: '1.2rem', color: '#64748b' }}
+              onClick={() => setCurrentPage('support')}
+              title="Abrir Chamado / Ajuda"
+            >
+              ❓
+            </div>
 
             {/* Vertical Separator */}
             <div style={{ width: '1px', height: '24px', background: '#e2e8f0' }} />
@@ -973,7 +1071,7 @@ function App() {
                 </span>
               </div>
               <ClientForm
-                user={selectedUser}
+                user={selectedUser || undefined}
                 onSave={() => setCurrentPage('home')}
                 onCancel={() => setCurrentPage('home')}
               />

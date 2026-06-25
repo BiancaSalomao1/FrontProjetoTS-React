@@ -46,11 +46,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       }
     } catch (err) {
       console.error('Erro de conexão:', err);
-      // Fallback: se o backend estiver offline, permite entrar para fins de teste no MVP
-      console.warn('Backend offline. Entrando com credenciais mockadas...');
-      const token = btoa(`${username}:${password}`);
-      setAuthToken(token);
-      onLoginSuccess();
+      setError('Erro de conexão. Verifique se o backend está rodando.');
     } finally {
       setLoading(false);
     }
@@ -77,14 +73,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🔒</div>
         <h2 style={{ color: '#1e293b', marginBottom: '30px', fontWeight: 'bold' }}>Acesso ao Sistema</h2>
         
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div 
+          onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(e as any); }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+        >
           <div>
             <input
               type="text"
               placeholder="Usuário"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
+              autoComplete="off"
               style={{
                 width: '100%',
                 padding: '15px',
@@ -102,7 +101,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              autoComplete="new-password"
               style={{
                 width: '100%',
                 padding: '15px',
@@ -122,8 +121,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           )}
 
           <button
-            type="submit"
-            disabled={loading}
+            onClick={(e) => handleLogin(e as any)}
+            disabled={loading || !username || !password}
             style={{
               background: '#2563eb',
               color: 'white',
@@ -132,16 +131,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               borderRadius: '8px',
               fontSize: '1.1rem',
               fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: loading || !username || !password ? 'not-allowed' : 'pointer',
               transition: 'background 0.2s',
-              opacity: loading ? 0.7 : 1
+              opacity: loading || !username || !password ? 0.7 : 1
             }}
-            onMouseOver={(e) => { if(!loading) e.currentTarget.style.background = '#1d4ed8'; }}
-            onMouseOut={(e) => { if(!loading) e.currentTarget.style.background = '#2563eb'; }}
+            onMouseOver={(e) => { if(!loading && username && password) e.currentTarget.style.background = '#1d4ed8'; }}
+            onMouseOut={(e) => { if(!loading && username && password) e.currentTarget.style.background = '#2563eb'; }}
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );

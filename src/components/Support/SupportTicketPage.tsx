@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { getAuthHeaders } from '../../utils/auth';
 
 const SupportTicketPage: React.FC = () => {
+  const [replyEmail, setReplyEmail] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
@@ -21,6 +22,7 @@ const SupportTicketPage: React.FC = () => {
         headers: getAuthHeaders(),
         body: JSON.stringify({
           subject: 'Site UK',
+          replyTo: replyEmail,
           message: message,
           targetEmail: 'biancasalomao2024@gmail.com'
         })
@@ -31,6 +33,7 @@ const SupportTicketPage: React.FC = () => {
       if (response.ok || response.status === 404) {
         setStatus('success');
         setMessage('');
+        setReplyEmail('');
         setTimeout(() => setStatus('idle'), 5000);
       } else {
         setStatus('error');
@@ -39,6 +42,7 @@ const SupportTicketPage: React.FC = () => {
       // Simula o sucesso caso o backend esteja off no dev mode
       setStatus('success');
       setMessage('');
+      setReplyEmail('');
       setTimeout(() => setStatus('idle'), 5000);
     }
   };
@@ -65,6 +69,26 @@ const SupportTicketPage: React.FC = () => {
       )}
 
       <form onSubmit={handleSendTicket} style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
+            Seu E-mail para Contato
+          </label>
+          <input
+            type="email"
+            value={replyEmail}
+            onChange={(e) => setReplyEmail(e.target.value)}
+            placeholder="Digite o seu e-mail..."
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '8px', 
+              border: '1px solid #cbd5e1', 
+              outline: 'none', 
+              fontSize: '0.95rem'
+            }}
+            required
+          />
+        </div>
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
             Sua Mensagem

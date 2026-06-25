@@ -30,6 +30,7 @@ interface User {
   status: string;
   observations: string;
   photoPath?: string;
+  habilitySet?: { id?: number; name: string }[];
 }
 
 interface SearchFilters {
@@ -293,11 +294,52 @@ const UserSearch: React.FC<UserSearchProps> = ({
   };
 
   // FUNÇÃO: Imprimir ficha individual do usuário
-  const printUserCard = (user: User) => {
+  const printUserCard = async (user: User) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       alert('Por favor, permita pop-ups para imprimir a ficha do usuário');
       return;
+    }
+    
+    printWindow.document.write('<h2>Carregando ficha e histórico de visitas...</h2>');
+
+    let visitsHtml = '<p style="color: #64748b; font-style: italic;">Nenhum histórico de visitas encontrado.</p>';
+    
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${API_BASE_URL}/api/visit-history`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (response.ok) {
+        const allVisits = await response.json();
+        const userVisits = allVisits.filter((v: any) => v.user?.id === user.id).sort((a: any, b: any) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime());
+        
+        if (userVisits.length > 0) {
+          visitsHtml = `
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
+              <thead>
+                <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                  <th style="padding: 10px; text-align: left;">Data</th>
+                  <th style="padding: 10px; text-align: left;">Assistente</th>
+                  <th style="padding: 10px; text-align: left;">Descrição</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${userVisits.map((v: any) => `
+                  <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 10px;">${new Date(v.visitDate).toLocaleString('pt-BR')}</td>
+                    <td style="padding: 10px; font-weight: bold;">${v.performedBy}</td>
+                    <td style="padding: 10px;">${v.description}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao buscar visitas para impressão', e);
     }
 
     const printContent = `
@@ -354,8 +396,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
           }
           
           .user-photo img {
-            width: 120px;
-            height: 120px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid #007bff;
@@ -363,14 +405,14 @@ const UserSearch: React.FC<UserSearchProps> = ({
           }
           
           .user-photo .no-photo {
-            width: 120px;
-            height: 120px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             background: #f0f0f0;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 64px;
             color: #ccc;
             border: 4px solid #ddd;
           }
@@ -520,6 +562,20 @@ const UserSearch: React.FC<UserSearchProps> = ({
               <div class="info-value">${user.observations}</div>
             </div>
             ` : ''}
+          </div>
+
+          <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            <h3 style="color: #007bff; margin-bottom: 10px; font-size: 18px;">Habilidades Cadastradas</h3>
+            ${user.habilitySet && user.habilitySet.length > 0 ? `
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${user.habilitySet.map(hab => `<span style="background: #e0e7ff; color: #4f46e5; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: bold;">${hab.name}</span>`).join('')}
+              </div>
+            ` : '<p style="color: #64748b; font-style: italic;">Nenhuma habilidade cadastrada.</p>'}
+          </div>
+
+          <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            <h3 style="color: #007bff; margin-bottom: 10px; font-size: 18px;">Histórico de Visitas</h3>
+            ${visitsHtml}
           </div>
           
           <div class="footer">
