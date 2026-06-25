@@ -18,6 +18,7 @@ interface Dependent {
 }
 
 interface ClientData {
+  id?: number;
   name: string;
   email: string;
   phone: string;
@@ -279,9 +280,11 @@ const styles = {
 
 interface ClientFormProps {
   user?: ClientData; // dados recebidos para edição 
+  onSave?: () => void;
+  onCancel?: () => void;
 }
 
-const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
+const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCancel }) => {
   const [formData, setFormData] = useState<ClientData>({
     name: '',
     email: '',
@@ -413,6 +416,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
         console.log('✅ Usuário cadastrado com sucesso:', result);
         alert(`Usuário cadastrado com sucesso! ID: ${result.id}`);
         clearForm();
+        onSave?.();
       } else {
         const errorText = await response.text();
         console.error('❌ Erro do servidor:', errorText);
@@ -750,6 +754,12 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user }) => {
             <button onClick={clearForm} style={styles.clearButton}>
               🗑️ Limpar Formulário
             </button>
+            
+            {onCancel && (
+              <button onClick={onCancel} style={styles.clearButton}>
+                ❌ Cancelar
+              </button>
+            )}
           </div>
 
           {/* Print Summary */}

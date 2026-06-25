@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAuthHeaders, handleAuthError } from '../../utils/auth';
+import { getAuthHeaders } from '../../utils/auth';
 
 interface User {
   id: number;

@@ -19,7 +19,7 @@ interface Dependent {
   birthDate?: string;
 }
 
-interface User {
+export interface User {
   id?: number;
   name: string;
   email: string;
@@ -39,7 +39,7 @@ interface SearchFilters {
   status: string;
 }
 
-type UserStatus = 'ATIVO' | 'INATIVO' | 'PENDENTE';
+
 
 interface UserSearchProps {
   onUserSelect?: (user: User) => void;
