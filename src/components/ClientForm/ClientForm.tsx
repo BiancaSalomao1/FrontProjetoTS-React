@@ -28,6 +28,8 @@ interface ClientData {
   status: string;
   observations: string;
   photoPath?: string;
+  startAssistanceDate?: string;
+  endAssistanceDate?: string;
 }
 
 const theme = {
@@ -294,7 +296,9 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
     dependents: [],
     status: '',
     observations: '',
-    photoPath: undefined
+    photoPath: undefined,
+    startAssistanceDate: undefined,
+    endAssistanceDate: undefined
   });
 
   useEffect(() => {
@@ -370,18 +374,6 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setPhotoPreview(result);
-        setFormData(prev => ({ ...prev, photoPath: result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = async () => {
     // Validação básica antes de enviar
@@ -466,6 +458,27 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
             </button>
           </div>
 
+          {/* Assistance Dates Info */}
+          {(formData.startAssistanceDate || formData.endAssistanceDate) && (
+            <div style={{ padding: '15px', backgroundColor: '#e8f4fd', borderRadius: '8px', marginBottom: '20px', borderLeft: '4px solid #007bff' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0056b3' }}>ℹ️ Informações de Assistência</h3>
+              <div style={{ display: 'flex', gap: '20px', fontSize: '14px' }}>
+                {formData.startAssistanceDate && (
+                  <div>
+                    <strong>Início da Assistência: </strong> 
+                    {new Date(formData.startAssistanceDate).toLocaleDateString('pt-BR')}
+                  </div>
+                )}
+                {formData.endAssistanceDate && (
+                  <div>
+                    <strong>Final da Assistência: </strong> 
+                    {new Date(formData.endAssistanceDate).toLocaleDateString('pt-BR')}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Photo Section */}
           <div style={styles.photoSection}>
             <h2 style={styles.sectionTitle}>Foto do Usuário</h2>
@@ -478,14 +491,19 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                 )}
               </div>
               <div style={styles.photoUpload}>
-                <label style={styles.label}>Selecionar Foto</label>
+                <label style={styles.label}>Link da Foto</label>
                 <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  style={styles.fileInput}
+                  type="url"
+                  name="photoPath"
+                  value={formData.photoPath || ''}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, photoPath: e.target.value }));
+                    setPhotoPreview(e.target.value);
+                  }}
+                  style={styles.input}
+                  placeholder="Ex: https://drive.google.com/..."
                 />
-                <p style={styles.hint}>PNG, JPG até 5MB</p>
+                <p style={styles.hint}>Cole o link da foto do usuário</p>
               </div>
             </div>
           </div>
