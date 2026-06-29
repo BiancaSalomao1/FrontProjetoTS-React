@@ -36,6 +36,9 @@ const SupportTicketPage: React.FC = () => {
         setReplyEmail('');
         setTimeout(() => setStatus('idle'), 5000);
       } else {
+        const errorText = await response.text();
+        console.error('Erro detalhado do servidor:', errorText);
+        alert('Erro 500 do Servidor: ' + errorText);
         setStatus('error');
       }
     } catch (e) {
