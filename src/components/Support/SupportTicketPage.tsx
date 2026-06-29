@@ -13,26 +13,41 @@ const SupportTicketPage: React.FC = () => {
     setStatus('sending');
 
     try {
-      // Usando FormSubmit para enviar o e-mail diretamente do frontend, desviando do bloqueio do Render
-      const response = await fetch("https://formsubmit.co/ajax/biancasalomao2024@gmail.com", {
+      // Usando Web3Forms para enviar o e-mail (com a chave protegida na variável de ambiente Vercel)
+      const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+      
+      if (!WEB3FORMS_KEY) {
+        alert("Erro de configuração: Chave do Web3Forms não encontrada no ambiente.");
+        setStatus('idle');
+        return;
+      }
+
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          name: "Formulário de Suporte ERP",
-          email: replyEmail,
-          message: message,
-          _subject: "Novo Chamado de Suporte"
+          access_key: WEB3FORMS_KEY,
+          subject: "Novo Chamado de Suporte ERP",
+          from_name: "Suporte ERP",
+          replyto: replyEmail,
+          message: message
         })
       });
 
       if (response.ok) {
-        setStatus('success');
-        setMessage('');
-        setReplyEmail('');
-        setTimeout(() => setStatus('idle'), 5000);
+        const result = await response.json();
+        if (result.success === "true" || result.success === true) {
+            setStatus('success');
+            setMessage('');
+            setReplyEmail('');
+            setTimeout(() => setStatus('idle'), 5000);
+        } else {
+            alert("Atenção (FormSubmit): " + result.message);
+            setStatus('error');
+        }
       } else {
         const errorText = await response.text();
         console.error('Erro detalhado do FormSubmit:', errorText);
