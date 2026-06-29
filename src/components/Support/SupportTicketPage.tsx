@@ -28,7 +28,8 @@ const SupportTicketPage: React.FC = () => {
       formData.append("name", "Usuário do Sistema");
       formData.append("replyto", replyEmail);
       formData.append("email", replyEmail);
-      formData.append("message", message);
+      const combinedMessage = `E-mail de Contato: ${replyEmail}\n\nMensagem:\n${message}`;
+      formData.append("message", combinedMessage);
 
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
