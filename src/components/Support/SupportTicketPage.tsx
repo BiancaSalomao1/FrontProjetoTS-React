@@ -16,15 +16,15 @@ const SupportTicketPage: React.FC = () => {
       // Usando FormSubmit para enviar o e-mail diretamente do frontend, desviando do bloqueio do Render
       const response = await fetch("https://formsubmit.co/ajax/biancasalomao2024@gmail.com", {
         method: "POST",
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
-            name: "Formulário de Suporte ERP",
-            email: replyEmail,
-            message: message,
-            _subject: "Novo Chamado de Suporte"
+          name: "Formulário de Suporte ERP",
+          email: replyEmail,
+          message: message,
+          _subject: "Novo Chamado de Suporte"
         })
       });
 
