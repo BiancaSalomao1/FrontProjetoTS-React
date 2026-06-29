@@ -41,11 +41,10 @@ const SupportTicketPage: React.FC = () => {
         alert('Erro 500 do Servidor: ' + errorText);
         setStatus('error');
       }
-    } catch (e) {
-      // Simula o sucesso caso o backend esteja off no dev mode
-      setStatus('success');
-      setMessage('');
-      setReplyEmail('');
+    } catch (e: any) {
+      console.error('Erro de rede ou chamada:', e);
+      alert('Falha de conexão com o servidor: ' + e.message);
+      setStatus('error');
       setTimeout(() => setStatus('idle'), 5000);
     }
   };
