@@ -747,7 +747,7 @@ function App() {
                   alignItems: 'center',
                   gap: '12px'
                 }}>
-                  <span style={{ fontSize: '1.5rem' }}>📅</span>
+                  <span style={{ fontSize: '1.5rem' }}>🗓️</span>
                   <div>
                     <strong style={{ display: 'block', fontSize: '0.9rem', color: '#1e293b' }}>{todayDateStr()}</strong>
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Fuso Horário Local</span>
@@ -775,7 +775,7 @@ function App() {
                 {/* Stat 2 */}
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '1.5rem', background: '#dcfce7', padding: '8px', borderRadius: '10px' }}>📅</span>
+                    <span style={{ fontSize: '1.5rem', background: '#dcfce7', padding: '8px', borderRadius: '10px' }}>🗓️</span>
                   </div>
                   <strong style={{ fontSize: '2rem', color: '#0f172a', display: 'block', marginBottom: '4px' }}>
                     {stats.visitsToday}
@@ -928,7 +928,7 @@ function App() {
                       width: '100%'
                     }}
                   >
-                    📅 Ver agenda completa
+                    🗓️ Ver agenda completa
                   </button>
                 </div>
 

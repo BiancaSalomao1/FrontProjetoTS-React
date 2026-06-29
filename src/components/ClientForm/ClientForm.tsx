@@ -391,10 +391,18 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
       const url = user?.id ? `${API_BASE_URL}/api/users/${user.id}` : `${API_BASE_URL}/api/users`;
       const method = user?.id ? 'PUT' : 'POST';
 
+      const dataToSend = { ...formData };
+      if (!dataToSend.startAssistanceDate) {
+        dataToSend.startAssistanceDate = null;
+      }
+      if (!dataToSend.endAssistanceDate) {
+        dataToSend.endAssistanceDate = null;
+      }
+
       const response = await fetch(url, {
         method,
         headers: getAuthHeaders(),
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) {
@@ -416,7 +424,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
         if (errorText.includes('duplicate key') || errorText.includes('already exists') || errorText.includes('DataIntegrityViolationException') || errorText.includes('23505') || errorText.includes('UK_6DOTKOTT2KJSP8VW4D0M25FB7_INDEX_4')) {
           alert('Erro: Este e-mail já está cadastrado no sistema para outra família! Por favor, use um e-mail diferente.');
         } else {
-          alert(`Erro do servidor (${response.status}): Por favor, verifique se todos os dados estão corretos e tente novamente.`);
+          alert(`Erro do servidor (${response.status}):\n${errorText}\n\nPor favor, verifique se todos os dados estão corretos.`);
         }
       }
     } catch (error) {

@@ -197,7 +197,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
         dependents: editingUser.dependents,
         status: editingUser.status,
         observations: editingUser.observations,
-        photoPath: editingUser.photoPath
+        photoPath: editingUser.photoPath,
+        startAssistanceDate: editingUser.startAssistanceDate || null
       };
 
       const response = await fetch(`${API_BASE_URL}/api/users/${editingUser.id}`, {
@@ -949,30 +950,38 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 />
               </div>
 
-              <div className={styles.filterInput}>
-                <span className={styles.filterIcon}>📅</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="12"
-                  value={searchFilters.startAssistanceMonth}
-                  onChange={(e) => handleFilterChange('startAssistanceMonth', e.target.value)}
-                  className={styles.input}
-                  placeholder="Mês (ex: 05)"
-                />
+              <div className={styles.inputGroup} style={{ minWidth: '140px' }}>
+                <label className={styles.label}>Mês de Início</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '10px', top: '8px' }}>🗓️</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={searchFilters.startAssistanceMonth}
+                    onChange={(e) => handleFilterChange('startAssistanceMonth', e.target.value)}
+                    className={styles.input}
+                    placeholder="ex: 05"
+                    style={{ paddingLeft: '35px', width: '100%' }}
+                  />
+                </div>
               </div>
 
-              <div className={styles.filterInput}>
-                <span className={styles.filterIcon}>📅</span>
-                <input
-                  type="number"
-                  min="2000"
-                  max="2100"
-                  value={searchFilters.startAssistanceYear}
-                  onChange={(e) => handleFilterChange('startAssistanceYear', e.target.value)}
-                  className={styles.input}
-                  placeholder="Ano (ex: 2024)"
-                />
+              <div className={styles.inputGroup} style={{ minWidth: '140px' }}>
+                <label className={styles.label}>Ano de Início</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '10px', top: '8px' }}>🗓️</span>
+                  <input
+                    type="number"
+                    min="2000"
+                    max="2100"
+                    value={searchFilters.startAssistanceYear}
+                    onChange={(e) => handleFilterChange('startAssistanceYear', e.target.value)}
+                    className={styles.input}
+                    placeholder="ex: 2024"
+                    style={{ paddingLeft: '35px', width: '100%' }}
+                  />
+                </div>
               </div>
 
               <div className={styles.inputGroup}>
@@ -1203,6 +1212,16 @@ const UserSearch: React.FC<UserSearchProps> = ({
                   <option value="INATIVO">Inativo</option>
                   <option value="PENDENTE">Pendente</option>
                 </select>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Início da Assistência</label>
+                <input
+                  type="date"
+                  value={editingUser.startAssistanceDate || ''}
+                  onChange={(e) => setEditingUser({ ...editingUser, startAssistanceDate: e.target.value })}
+                  className={styles.input}
+                />
               </div>
 
               <div className={styles.inputGroup}>
