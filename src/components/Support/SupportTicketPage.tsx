@@ -13,37 +13,35 @@ const SupportTicketPage: React.FC = () => {
     setStatus('sending');
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
-      // Essa é uma tentativa de chamar o endpoint de suporte do backend (se existir)
-      // O backend é o responsável por disparar o e-mail para biancasalomao2024@gmail.com
-      const response = await fetch(`${API_BASE_URL}/api/support/ticket`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
+      // Usando FormSubmit para enviar o e-mail diretamente do frontend, desviando do bloqueio do Render
+      const response = await fetch("https://formsubmit.co/ajax/biancasalomao2024@gmail.com", {
+        method: "POST",
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
         body: JSON.stringify({
-          subject: 'Site UK',
-          replyTo: replyEmail,
-          message: message,
-          targetEmail: 'biancasalomao2024@gmail.com'
+            name: "Formulário de Suporte ERP",
+            email: replyEmail,
+            message: message,
+            _subject: "Novo Chamado de Suporte"
         })
       });
 
-      // Independente do backend existir ou não, vamos mockar o sucesso para UX temporária,
-      // pois o e-mail real só sai se o servidor Spring Boot tiver o JavaMail configurado.
-      if (response.ok || response.status === 404) {
+      if (response.ok) {
         setStatus('success');
         setMessage('');
         setReplyEmail('');
         setTimeout(() => setStatus('idle'), 5000);
       } else {
         const errorText = await response.text();
-        console.error('Erro detalhado do servidor:', errorText);
-        alert('Erro 500 do Servidor: ' + errorText);
+        console.error('Erro detalhado do FormSubmit:', errorText);
+        alert('Erro ao processar e-mail: ' + errorText);
         setStatus('error');
       }
     } catch (e: any) {
       console.error('Erro de rede ou chamada:', e);
-      alert('Falha de conexão com o servidor: ' + e.message);
+      alert('Falha de conexão: ' + e.message);
       setStatus('error');
       setTimeout(() => setStatus('idle'), 5000);
     }
