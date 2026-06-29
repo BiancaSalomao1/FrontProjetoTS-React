@@ -73,10 +73,12 @@ const SupportTicketPage: React.FC = () => {
 
       <form onSubmit={handleSendTicket} style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
+          <label htmlFor="replyEmail" style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
             Seu E-mail para Contato
           </label>
           <input
+            id="replyEmail"
+            name="replyEmail"
             type="email"
             value={replyEmail}
             onChange={(e) => setReplyEmail(e.target.value)}
@@ -93,13 +95,15 @@ const SupportTicketPage: React.FC = () => {
           />
         </div>
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
+          <label htmlFor="message" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
             <span>Sua Mensagem</span>
             <span style={{ fontSize: '0.8rem', color: message.length > 2000 ? 'red' : '#94a3b8', fontWeight: 'normal' }}>
               {message.length} / 2000
             </span>
           </label>
           <textarea
+            id="message"
+            name="message"
             value={message}
             onChange={(e) => setMessage(e.target.value.slice(0, 2000))}
             maxLength={2000}
