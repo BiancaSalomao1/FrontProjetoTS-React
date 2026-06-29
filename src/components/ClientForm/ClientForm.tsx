@@ -491,27 +491,30 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                 )}
               </div>
               <div style={styles.photoUpload}>
-                <label style={styles.label}>Link da Foto</label>
+                <label style={styles.label}>Upload de Foto (máx 2MB)</label>
                 <input
-                  type="url"
-                  name="photoPath"
-                  value={formData.photoPath || ''}
+                  type="file"
+                  accept="image/jpeg, image/png, image/webp"
                   onChange={(e) => {
-                    const rawUrl = e.target.value;
-                    let formattedUrl = rawUrl;
-                    if (rawUrl.includes('drive.google.com/file/d/')) {
-                      const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                      if (match && match[1]) {
-                        formattedUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 2 * 1024 * 1024) {
+                        alert('A foto deve ter no máximo 2MB.');
+                        e.target.value = '';
+                        return;
                       }
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        const base64String = reader.result as string;
+                        setFormData(prev => ({ ...prev, photoPath: base64String }));
+                        setPhotoPreview(base64String);
+                      };
+                      reader.readAsDataURL(file);
                     }
-                    setFormData(prev => ({ ...prev, photoPath: formattedUrl }));
-                    setPhotoPreview(formattedUrl);
                   }}
-                  style={styles.input}
-                  placeholder="Ex: https://drive.google.com/..."
+                  style={styles.fileInput}
                 />
-                <p style={styles.hint}>Cole o link da foto do usuário</p>
+                <p style={styles.hint}>Formatos aceitos: JPG, PNG, WEBP</p>
               </div>
             </div>
           </div>

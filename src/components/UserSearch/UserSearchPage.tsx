@@ -1244,24 +1244,32 @@ const UserSearch: React.FC<UserSearchProps> = ({
               </div>
 
               <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
-                <label className={styles.label}>URL da Foto</label>
+                <label className={styles.label}>Upload de Nova Foto (máx 2MB)</label>
                 <input
-                  type="url"
-                  value={editingUser.photoPath || ''}
+                  type="file"
+                  accept="image/jpeg, image/png, image/webp"
                   onChange={(e) => {
-                    const rawUrl = e.target.value;
-                    let formattedUrl = rawUrl;
-                    if (rawUrl.includes('drive.google.com/file/d/')) {
-                      const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                      if (match && match[1]) {
-                        formattedUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 2 * 1024 * 1024) {
+                        alert('A foto deve ter no máximo 2MB.');
+                        e.target.value = '';
+                        return;
                       }
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        const base64String = reader.result as string;
+                        setEditingUser({ ...editingUser, photoPath: base64String });
+                      };
+                      reader.readAsDataURL(file);
                     }
-                    setEditingUser({ ...editingUser, photoPath: formattedUrl });
                   }}
                   className={styles.input}
-                  placeholder="https://exemplo.com/foto.jpg"
+                  style={{ padding: '8px' }}
                 />
+                {editingUser.photoPath && editingUser.photoPath.startsWith('data:image') && (
+                  <p style={{ fontSize: '12px', color: '#16a34a', marginTop: '4px' }}>✓ Nova foto carregada pronta para salvar.</p>
+                )}
               </div>
 
               <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
