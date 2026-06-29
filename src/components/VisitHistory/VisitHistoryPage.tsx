@@ -304,7 +304,7 @@ const VisitHistoryPage: React.FC = () => {
                     <td style={{ padding: '15px' }}>{new Date(visit.visitDate).toLocaleString('pt-BR')}</td>
                     <td style={{ padding: '15px', fontWeight: 'bold' }}>{visit.user?.name || 'Desconhecido'}</td>
                     <td style={{ padding: '15px' }}>{visit.performedBy}</td>
-                    <td style={{ padding: '15px', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <td className="print-full-text" style={{ padding: '15px', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {visit.description}
                     </td>
                     <td className="no-print" style={{ padding: '15px' }}>
@@ -389,6 +389,12 @@ const VisitHistoryPage: React.FC = () => {
         @media print {
           .no-print { display: none !important; }
           body { background: white; }
+          .print-full-text {
+            white-space: pre-wrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: none !important;
+          }
         }
       `}} />
     </div>

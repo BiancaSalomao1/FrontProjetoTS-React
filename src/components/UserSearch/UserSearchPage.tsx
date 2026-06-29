@@ -94,7 +94,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
           dependents: userDto.dependents || [],
           status: userDto.status || 'ATIVO',
           observations: userDto.observations || '',
-          photoPath: userDto.photoPath || null
+          photoPath: userDto.photoPath || null,
+          habilitySet: userDto.habilities ? userDto.habilities.map((h: string) => ({ name: h })) : []
         }));
 
         setUsers(convertedUsers);
@@ -541,9 +542,18 @@ const UserSearch: React.FC<UserSearchProps> = ({
               <div class="info-value">R$ ${user.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             </div>
             
-            <div class="info-item">
-              <div class="info-label">Número de Dependentes</div>
-              <div class="info-value">${user.dependents.length}</div>
+            <div class="info-item full-width">
+              <div class="info-label">Dependentes (${user.dependents.length})</div>
+              <div class="info-value">
+                ${user.dependents && user.dependents.length > 0 
+                  ? `<ul style="margin: 5px 0; padding-left: 20px;">
+                      ${user.dependents.map(d => {
+                        const age = d.birthDate ? Math.floor((new Date().getTime() - new Date(d.birthDate).getTime()) / 31557600000) : null;
+                        return `<li>${d.name} ${age !== null && age >= 0 ? `(${age} anos)` : ''}</li>`;
+                      }).join('')}
+                     </ul>`
+                  : 'Nenhum dependente'}
+              </div>
             </div>
             
             <div class="info-item">
@@ -664,9 +674,18 @@ const UserSearch: React.FC<UserSearchProps> = ({
             <div class="info-value">R$ ${user.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
           </div>
           
-          <div class="info-item">
-            <div class="info-label">Número de Dependentes</div>
-            <div class="info-value">${user.dependents.length}</div>
+          <div class="info-item full-width">
+            <div class="info-label">Dependentes (${user.dependents.length})</div>
+            <div class="info-value">
+              ${user.dependents && user.dependents.length > 0 
+                ? `<ul style="margin: 5px 0; padding-left: 20px;">
+                    ${user.dependents.map(d => {
+                      const age = d.birthDate ? Math.floor((new Date().getTime() - new Date(d.birthDate).getTime()) / 31557600000) : null;
+                      return `<li>${d.name} ${age !== null && age >= 0 ? `(${age} anos)` : ''}</li>`;
+                    }).join('')}
+                   </ul>`
+                : 'Nenhum dependente'}
+            </div>
           </div>
           
           <div class="info-item">
@@ -685,6 +704,16 @@ const UserSearch: React.FC<UserSearchProps> = ({
             <div class="info-value">${user.observations}</div>
           </div>
           ` : ''}
+          
+          <div style="margin-top: 15px; grid-column: 1 / -1;">
+            <h3 style="color: #007bff; margin-bottom: 5px; font-size: 14px;">Habilidades</h3>
+            ${user.habilitySet && user.habilitySet.length > 0 ? `
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${user.habilitySet.map(hab => `<span style="background: #e0e7ff; color: #4f46e5; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">${hab.name}</span>`).join('')}
+              </div>
+            ` : '<p style="color: #64748b; font-style: italic; font-size: 12px; margin: 0;">Nenhuma habilidade cadastrada.</p>'}
+          </div>
+
         </div>
         
         <div class="footer">
