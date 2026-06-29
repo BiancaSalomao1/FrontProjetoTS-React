@@ -30,9 +30,10 @@ const SupportTicketPage: React.FC = () => {
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
           subject: "Novo Chamado de Suporte ERP",
-          from_name: "Suporte ERP",
+          from_name: "Sistema ERP",
           replyto: replyEmail,
-          message: message
+          "E-mail para Contato": replyEmail,
+          "Mensagem do Usuário": message
         })
       });
 
