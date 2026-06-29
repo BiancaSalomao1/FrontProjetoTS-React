@@ -21,20 +21,18 @@ const SupportTicketPage: React.FC = () => {
         return;
       }
 
+      const formData = new FormData();
+      formData.append("access_key", WEB3FORMS_KEY);
+      formData.append("subject", "Novo Chamado de Suporte ERP");
+      formData.append("from_name", "Sistema ERP");
+      formData.append("name", "Usuário do Sistema");
+      formData.append("replyto", replyEmail);
+      formData.append("email", replyEmail);
+      formData.append("message", message);
+
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: "Novo Chamado de Suporte ERP",
-          from_name: "Sistema ERP",
-          replyto: replyEmail,
-          email: replyEmail,
-          message: message
-        })
+        body: formData
       });
 
       if (response.ok) {
