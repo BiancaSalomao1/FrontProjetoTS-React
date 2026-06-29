@@ -580,6 +580,19 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
           </div>
 
           <div style={styles.formGrid}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Início da Assistência</label>
+              <input
+                type="date"
+                name="startAssistanceDate"
+                value={formData.startAssistanceDate || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+              />
+            </div>
+          </div>
+
+          <div style={styles.formGrid}>
             <div style={{ ...styles.inputGroup, position: 'relative' }}>
               <label style={styles.label}>CEP *</label>
               <input
@@ -805,6 +818,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                 return age !== null && age >= 0 ? `${d.name} [${age} anos]` : d.name;
               }).join(', ')})` : ''}</div>
               <div><strong>Status:</strong> {formData.status}</div>
+              <div><strong>Início da Assistência:</strong> {formData.startAssistanceDate ? new Date(formData.startAssistanceDate).toLocaleDateString('pt-BR') : 'Não informado'}</div>
             </div>
             {formData.observations && (
               <div style={styles.observations}>

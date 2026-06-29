@@ -28,11 +28,13 @@ export interface User {
   status: string;
   observations: string;
   photoPath?: string;
+  startAssistanceDate?: string;
 }
 
 export interface SearchFilters {
   name: string;
-  email: string;
+  startAssistanceMonth: string;
+  startAssistanceYear: string;
   status: string;
 }
 

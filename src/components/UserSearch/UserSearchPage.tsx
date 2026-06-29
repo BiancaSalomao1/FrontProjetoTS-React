@@ -31,11 +31,13 @@ export interface User {
   observations: string;
   photoPath?: string;
   habilitySet?: { id?: number; name: string }[];
+  startAssistanceDate?: string;
 }
 
 interface SearchFilters {
   name: string;
-  email: string;
+  startAssistanceMonth: string;
+  startAssistanceYear: string;
   status: string;
 }
 
@@ -58,7 +60,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     name: '',
-    email: '',
+    startAssistanceMonth: '',
+    startAssistanceYear: '',
     status: ''
   });
 
@@ -95,7 +98,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
           status: userDto.status || 'ATIVO',
           observations: userDto.observations || '',
           photoPath: userDto.photoPath || null,
-          habilitySet: userDto.habilities ? userDto.habilities.map((h: string) => ({ name: h })) : []
+          habilitySet: userDto.habilities ? userDto.habilities.map((h: string) => ({ name: h })) : [],
+          startAssistanceDate: userDto.startAssistanceDate || null
         }));
 
         setUsers(convertedUsers);
@@ -121,10 +125,20 @@ const UserSearch: React.FC<UserSearchProps> = ({
       );
     }
 
-    if (searchFilters.email) {
-      filtered = filtered.filter(user =>
-        user.email.toLowerCase().includes(searchFilters.email.toLowerCase())
-      );
+    if (searchFilters.startAssistanceMonth) {
+      filtered = filtered.filter(user => {
+        if (!user.startAssistanceDate) return false;
+        const month = user.startAssistanceDate.split('-')[1];
+        return month === searchFilters.startAssistanceMonth.padStart(2, '0');
+      });
+    }
+
+    if (searchFilters.startAssistanceYear) {
+      filtered = filtered.filter(user => {
+        if (!user.startAssistanceDate) return false;
+        const year = user.startAssistanceDate.split('-')[0];
+        return year === searchFilters.startAssistanceYear;
+      });
     }
 
     if (searchFilters.status) {
@@ -147,7 +161,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
   const clearFilters = () => {
     setSearchFilters({
       name: '',
-      email: '',
+      startAssistanceMonth: '',
+      startAssistanceYear: '',
       status: ''
     });
   };
@@ -516,10 +531,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
             </div>
             
             <div class="info-item">
-              <div class="info-label">Status</div>
-              <div class="info-value">
-                <span class="status-badge status-${user.status.toLowerCase()}">${user.status}</span>
-              </div>
+              <div class="info-label">Início da Assistência</div>
+              <div class="info-value">${user.startAssistanceDate ? new Date(user.startAssistanceDate).toLocaleDateString('pt-BR') : 'Não informado'}</div>
             </div>
             
             <div class="info-item">
@@ -648,10 +661,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
           </div>
           
           <div class="info-item">
-            <div class="info-label">Status</div>
-            <div class="info-value">
-              <span class="status-badge status-${user.status.toLowerCase()}">${user.status}</span>
-            </div>
+            <div class="info-label">Início da Assistência</div>
+            <div class="info-value">${user.startAssistanceDate ? new Date(user.startAssistanceDate).toLocaleDateString('pt-BR') : 'Não informado'}</div>
           </div>
           
           <div class="info-item">
@@ -938,14 +949,29 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 />
               </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Email</label>
+              <div className={styles.filterInput}>
+                <span className={styles.filterIcon}>📅</span>
                 <input
-                  type="email"
-                  value={searchFilters.email}
-                  onChange={(e) => handleFilterChange('email', e.target.value)}
-                  placeholder="Buscar por email..."
+                  type="number"
+                  min="1"
+                  max="12"
+                  value={searchFilters.startAssistanceMonth}
+                  onChange={(e) => handleFilterChange('startAssistanceMonth', e.target.value)}
                   className={styles.input}
+                  placeholder="Mês (ex: 05)"
+                />
+              </div>
+
+              <div className={styles.filterInput}>
+                <span className={styles.filterIcon}>📅</span>
+                <input
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  value={searchFilters.startAssistanceYear}
+                  onChange={(e) => handleFilterChange('startAssistanceYear', e.target.value)}
+                  className={styles.input}
+                  placeholder="Ano (ex: 2024)"
                 />
               </div>
 
@@ -1108,9 +1134,10 @@ const UserSearch: React.FC<UserSearchProps> = ({
             <p><strong>Filtros aplicados:</strong></p>
             <ul>
               {searchFilters.name && <li>Nome: {searchFilters.name}</li>}
-              {searchFilters.email && <li>Email: {searchFilters.email}</li>}
+              {searchFilters.startAssistanceMonth && <li>Mês Início: {searchFilters.startAssistanceMonth}</li>}
+              {searchFilters.startAssistanceYear && <li>Ano Início: {searchFilters.startAssistanceYear}</li>}
               {searchFilters.status && <li>Status: {searchFilters.status}</li>}
-              {!searchFilters.name && !searchFilters.email && !searchFilters.status && <li>Nenhum filtro aplicado</li>}
+              {!searchFilters.name && !searchFilters.startAssistanceMonth && !searchFilters.startAssistanceYear && !searchFilters.status && <li>Nenhum filtro aplicado</li>}
             </ul>
           </div>
         </div>
