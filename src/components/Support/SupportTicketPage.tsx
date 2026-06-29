@@ -14,7 +14,7 @@ const SupportTicketPage: React.FC = () => {
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-      
+
       // Essa é uma tentativa de chamar o endpoint de suporte do backend (se existir)
       // O backend é o responsável por disparar o e-mail para biancasalomao2024@gmail.com
       const response = await fetch(`${API_BASE_URL}/api/support/ticket`, {
@@ -78,32 +78,36 @@ const SupportTicketPage: React.FC = () => {
             value={replyEmail}
             onChange={(e) => setReplyEmail(e.target.value)}
             placeholder="Digite o seu e-mail..."
-            style={{ 
-              width: '100%', 
-              padding: '12px', 
-              borderRadius: '8px', 
-              border: '1px solid #cbd5e1', 
-              outline: 'none', 
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              outline: 'none',
               fontSize: '0.95rem'
             }}
             required
           />
         </div>
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
-            Sua Mensagem
+          <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
+            <span>Sua Mensagem</span>
+            <span style={{ fontSize: '0.8rem', color: message.length > 2000 ? 'red' : '#94a3b8', fontWeight: 'normal' }}>
+              {message.length} / 2000
+            </span>
           </label>
           <textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => setMessage(e.target.value.slice(0, 2000))}
+            maxLength={2000}
             placeholder="Descreva detalhadamente a sua solicitação..."
             rows={8}
-            style={{ 
-              width: '100%', 
-              padding: '12px', 
-              borderRadius: '8px', 
-              border: '1px solid #cbd5e1', 
-              outline: 'none', 
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              outline: 'none',
               resize: 'vertical',
               fontSize: '0.95rem',
               fontFamily: 'inherit'
@@ -115,14 +119,14 @@ const SupportTicketPage: React.FC = () => {
         <button
           type="submit"
           disabled={status === 'sending' || !message.trim()}
-          style={{ 
-            width: '100%', 
-            padding: '14px', 
-            background: status === 'sending' || !message.trim() ? '#94a3b8' : '#4f46e5', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '8px', 
-            cursor: status === 'sending' || !message.trim() ? 'not-allowed' : 'pointer', 
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: status === 'sending' || !message.trim() ? '#94a3b8' : '#4f46e5',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: status === 'sending' || !message.trim() ? 'not-allowed' : 'pointer',
             fontWeight: 'bold',
             fontSize: '1rem',
             transition: 'background 0.2s'
@@ -130,7 +134,7 @@ const SupportTicketPage: React.FC = () => {
         >
           {status === 'sending' ? 'Enviando...' : 'Enviar Chamado'}
         </button>
-        
+
         <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '16px' }}>
           Esta mensagem será enviada de forma segura. O título e os detalhes técnicos são preenchidos automaticamente.
         </p>

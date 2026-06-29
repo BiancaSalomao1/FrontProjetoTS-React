@@ -47,10 +47,10 @@ interface UserSearchProps {
   maxResults?: number;
 }
 
-const UserSearch: React.FC<UserSearchProps> = ({ 
-  onUserSelect, 
-  showActions = true, 
-  maxResults = 100 
+const UserSearch: React.FC<UserSearchProps> = ({
+  onUserSelect,
+  showActions = true,
+  maxResults = 100
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -80,7 +80,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
         method: 'GET',
         headers: getAuthHeaders(),
       });
-      
+
       if (response.ok) {
         const userData = await response.json();
         // Converter UserDTO para User se necessário
@@ -96,7 +96,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
           observations: userDto.observations || '',
           photoPath: userDto.photoPath || null
         }));
-        
+
         setUsers(convertedUsers);
         console.log('✅ Usuários carregados da API Spring Boot:', convertedUsers);
       } else {
@@ -115,19 +115,19 @@ const UserSearch: React.FC<UserSearchProps> = ({
     let filtered = users;
 
     if (searchFilters.name) {
-      filtered = filtered.filter(user => 
+      filtered = filtered.filter(user =>
         user.name.toLowerCase().includes(searchFilters.name.toLowerCase())
       );
     }
 
     if (searchFilters.email) {
-      filtered = filtered.filter(user => 
+      filtered = filtered.filter(user =>
         user.email.toLowerCase().includes(searchFilters.email.toLowerCase())
       );
     }
 
     if (searchFilters.status) {
-      filtered = filtered.filter(user => 
+      filtered = filtered.filter(user =>
         user.status === searchFilters.status
       );
     }
@@ -192,7 +192,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
 
       if (response.ok) {
         const updatedUserDTO = await response.json();
-        
+
         // Converter de volta para User
         const updatedUser: User = {
           id: updatedUserDTO.id,
@@ -206,20 +206,20 @@ const UserSearch: React.FC<UserSearchProps> = ({
           observations: updatedUserDTO.observations || '',
           photoPath: updatedUserDTO.photoPath || null
         };
-        
+
         // Atualiza a lista local
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
             user.id === updatedUser.id ? updatedUser : user
           )
         );
-        
+
         setEditingUser(null);
         alert('✅ Usuário atualizado com sucesso!');
-        
+
         // Callback opcional para o componente pai
         if (onUserSelect) {
-         // onUserSelect(updatedUser);
+          // onUserSelect(updatedUser);
         }
       } else {
         handleAuthError(response);
@@ -247,10 +247,10 @@ const UserSearch: React.FC<UserSearchProps> = ({
 
       if (response.ok) {
         // Remove da lista local
-        setUsers(prevUsers => 
+        setUsers(prevUsers =>
           prevUsers.filter(u => u.id !== user.id)
         );
-        
+
         alert('✅ Usuário excluído com sucesso!');
       } else {
         handleAuthError(response);
@@ -300,21 +300,21 @@ const UserSearch: React.FC<UserSearchProps> = ({
       alert('Por favor, permita pop-ups para imprimir a ficha do usuário');
       return;
     }
-    
+
     printWindow.document.write('<h2>Carregando ficha e histórico de visitas...</h2>');
 
     let visitsHtml = '<p style="color: #64748b; font-style: italic;">Nenhum histórico de visitas encontrado.</p>';
-    
+
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
       const response = await fetch(`${API_BASE_URL}/api/visit-history`, {
         headers: getAuthHeaders()
       });
-      
+
       if (response.ok) {
         const allVisits = await response.json();
         const userVisits = allVisits.filter((v: any) => v.user?.id === user.id).sort((a: any, b: any) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime());
-        
+
         if (userVisits.length > 0) {
           visitsHtml = `
             <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
@@ -501,11 +501,11 @@ const UserSearch: React.FC<UserSearchProps> = ({
           </div>
           
           <div class="user-photo">
-            ${user.photoPath ? 
-              `<img src="${user.photoPath}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
-               <div class="no-photo" style="display:none;">👤</div>` : 
-              `<div class="no-photo">👤</div>`
-            }
+            ${user.photoPath ?
+        `<img src="${user.photoPath}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+               <div class="no-photo" style="display:none;">👤</div>` :
+        `<div class="no-photo">👤</div>`
+      }
           </div>
           
           <div class="info-grid">
@@ -624,11 +624,11 @@ const UserSearch: React.FC<UserSearchProps> = ({
         </div>
         
         <div class="user-photo">
-          ${user.photoPath ? 
-            `<img src="${user.photoPath}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
-             <div class="no-photo" style="display:none;">👤</div>` : 
-            `<div class="no-photo">👤</div>`
-          }
+          ${user.photoPath ?
+        `<img src="${user.photoPath}" alt="Foto de ${user.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+             <div class="no-photo" style="display:none;">👤</div>` :
+        `<div class="no-photo">👤</div>`
+      }
         </div>
         
         <div class="info-grid">
@@ -877,15 +877,15 @@ const UserSearch: React.FC<UserSearchProps> = ({
             <h1 className={styles.title}>👥 Busca e Relatório de Usuários</h1>
             {showActions && (
               <div className={styles.buttonGroup}>
-                <button 
-                  onClick={loadUsers} 
+                <button
+                  onClick={loadUsers}
                   className={`${styles.button} ${styles.primaryButton}`}
                   disabled={loading}
                 >
                   🔄 {loading ? 'Carregando...' : 'Atualizar'}
                 </button>
-                <button 
-                  onClick={handlePrint} 
+                <button
+                  onClick={handlePrint}
                   className={`${styles.button} ${styles.successButton}`}
                 >
                   🖨️ Imprimir
@@ -934,7 +934,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 </select>
               </div>
 
-              <button 
+              <button
                 onClick={clearFilters}
                 className={`${styles.button} ${styles.warningButton}`}
               >
@@ -950,7 +950,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
             </h3>
             {showActions && (
               <div className={styles.buttonGroup}>
-                <button 
+                <button
                   onClick={exportToCSV}
                   className={`${styles.button} ${styles.successButton}`}
                   disabled={filteredUsers.length === 0}
@@ -958,8 +958,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 >
                   📥 Exportar CSV
                 </button>
-                
-                <button 
+
+                <button
                   onClick={printAllUserCards}
                   className={`${styles.button} ${styles.primaryButton}`}
                   disabled={filteredUsers.length === 0}
@@ -976,7 +976,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th className={styles.th}>Foto</th> 
+                  <th className={styles.th}>Foto</th>
                   <th className={styles.th}>ID</th>
                   <th className={styles.th}>Nome</th>
                   <th className={styles.th}>Email</th>
@@ -1017,7 +1017,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                     </td>
                     <td className={styles.td}>
                       {user.observations ? (
-                        user.observations.length > 50 
+                        user.observations.length > 50
                           ? `${user.observations.substring(0, 50)}...`
                           : user.observations
                       ) : '-'}
@@ -1035,7 +1035,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                         >
                           ✏️
                         </button>
-                        
+
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1047,7 +1047,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                         >
                           🖨️
                         </button>
-                        
+
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1109,7 +1109,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 <input
                   type="text"
                   value={editingUser.name}
-                  onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                  onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
                   className={styles.input}
                   required
                 />
@@ -1120,7 +1120,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 <input
                   type="email"
                   value={editingUser.email}
-                  onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                  onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
                   className={styles.input}
                   required
                 />
@@ -1131,7 +1131,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 <input
                   type="tel"
                   value={editingUser.phone}
-                  onChange={(e) => setEditingUser({...editingUser, phone: e.target.value})}
+                  onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
                   className={styles.input}
                 />
               </div>
@@ -1140,7 +1140,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 <label className={styles.label}>Status</label>
                 <select
                   value={editingUser.status}
-                  onChange={(e) => setEditingUser({...editingUser, status: e.target.value})}
+                  onChange={(e) => setEditingUser({ ...editingUser, status: e.target.value })}
                   className={styles.select}
                 >
                   <option value="ATIVO">Ativo</option>
@@ -1156,7 +1156,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                   step="0.01"
                   min="0"
                   value={editingUser.income}
-                  onChange={(e) => setEditingUser({...editingUser, income: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setEditingUser({ ...editingUser, income: parseFloat(e.target.value) || 0 })}
                   className={styles.input}
                 />
               </div>
@@ -1164,8 +1164,8 @@ const UserSearch: React.FC<UserSearchProps> = ({
               <div className={`${styles.inputGroup} ${styles.formGroupFull}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <label className={styles.label} style={{ marginBottom: 0 }}>Dependentes</label>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingUser(prev => prev ? { ...prev, dependents: [...prev.dependents, { name: '', birthDate: '' }] } : null);
@@ -1175,7 +1175,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                     + Adicionar
                   </button>
                 </div>
-                
+
                 {editingUser.dependents.length === 0 ? (
                   <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic', margin: '5px 0' }}>Sem dependentes.</p>
                 ) : (
@@ -1233,11 +1233,11 @@ const UserSearch: React.FC<UserSearchProps> = ({
                   type="text"
                   value={`${editingUser.addressEntity.street}, ${editingUser.addressEntity.number}`}
                   onChange={(e) => {
-                     const parts = e.target.value.split(',');
-                     setEditingUser({
-                        ...editingUser, 
-                        addressEntity: { ...editingUser.addressEntity, street: parts[0] || '', number: parts[1] ? parts[1].trim() : '' }
-                     });
+                    const parts = e.target.value.split(',');
+                    setEditingUser({
+                      ...editingUser,
+                      addressEntity: { ...editingUser.addressEntity, street: parts[0] || '', number: parts[1] ? parts[1].trim() : '' }
+                    });
                   }}
                   className={styles.input}
                 />
@@ -1248,7 +1248,17 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 <input
                   type="url"
                   value={editingUser.photoPath || ''}
-                  onChange={(e) => setEditingUser({...editingUser, photoPath: e.target.value})}
+                  onChange={(e) => {
+                    const rawUrl = e.target.value;
+                    let formattedUrl = rawUrl;
+                    if (rawUrl.includes('drive.google.com/file/d/')) {
+                      const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                      if (match && match[1]) {
+                        formattedUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                      }
+                    }
+                    setEditingUser({ ...editingUser, photoPath: formattedUrl });
+                  }}
                   className={styles.input}
                   placeholder="https://exemplo.com/foto.jpg"
                 />
@@ -1258,7 +1268,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 <label className={styles.label}>Observações</label>
                 <textarea
                   value={editingUser.observations || ''}
-                  onChange={(e) => setEditingUser({...editingUser, observations: e.target.value})}
+                  onChange={(e) => setEditingUser({ ...editingUser, observations: e.target.value })}
                   className={styles.textarea}
                   placeholder="Observações sobre o usuário..."
                 />
@@ -1273,14 +1283,14 @@ const UserSearch: React.FC<UserSearchProps> = ({
               >
                 💾 Salvar Alterações
               </button>
-              
+
               <button
                 onClick={() => printUserCard(editingUser)}
                 className={`${styles.button} ${styles.primaryButton}`}
               >
                 🖨️ Imprimir Ficha
               </button>
-              
+
               <button
                 onClick={() => setEditingUser(null)}
                 className={`${styles.button} ${styles.warningButton}`}

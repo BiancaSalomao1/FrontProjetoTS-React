@@ -386,7 +386,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
 
     try {
       console.log('🚀 Dados a serem enviados:', JSON.stringify(formData, null, 2));
-      
+
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
       const url = user?.id ? `${API_BASE_URL}/api/users/${user.id}` : `${API_BASE_URL}/api/users`;
       const method = user?.id ? 'PUT' : 'POST';
@@ -412,7 +412,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
       } else {
         const errorText = await response.text();
         console.error('❌ Erro do servidor:', errorText);
-        
+
         if (errorText.includes('duplicate key') || errorText.includes('already exists') || errorText.includes('DataIntegrityViolationException') || errorText.includes('23505') || errorText.includes('UK_6DOTKOTT2KJSP8VW4D0M25FB7_INDEX_4')) {
           alert('Erro: Este e-mail já está cadastrado no sistema para outra família! Por favor, use um e-mail diferente.');
         } else {
@@ -465,13 +465,13 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
               <div style={{ display: 'flex', gap: '20px', fontSize: '14px' }}>
                 {formData.startAssistanceDate && (
                   <div>
-                    <strong>Início da Assistência: </strong> 
+                    <strong>Início da Assistência: </strong>
                     {new Date(formData.startAssistanceDate).toLocaleDateString('pt-BR')}
                   </div>
                 )}
                 {formData.endAssistanceDate && (
                   <div>
-                    <strong>Final da Assistência: </strong> 
+                    <strong>Final da Assistência: </strong>
                     {new Date(formData.endAssistanceDate).toLocaleDateString('pt-BR')}
                   </div>
                 )}
@@ -497,8 +497,16 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                   name="photoPath"
                   value={formData.photoPath || ''}
                   onChange={(e) => {
-                    setFormData(prev => ({ ...prev, photoPath: e.target.value }));
-                    setPhotoPreview(e.target.value);
+                    const rawUrl = e.target.value;
+                    let formattedUrl = rawUrl;
+                    if (rawUrl.includes('drive.google.com/file/d/')) {
+                      const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                      if (match && match[1]) {
+                        formattedUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                      }
+                    }
+                    setFormData(prev => ({ ...prev, photoPath: formattedUrl }));
+                    setPhotoPreview(formattedUrl);
                   }}
                   style={styles.input}
                   placeholder="Ex: https://drive.google.com/..."
@@ -569,7 +577,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
           </div>
 
           <div style={styles.formGrid}>
-            <div style={{...styles.inputGroup, position: 'relative'}}>
+            <div style={{ ...styles.inputGroup, position: 'relative' }}>
               <label style={styles.label}>CEP *</label>
               <input
                 type="text"
@@ -580,7 +588,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                 style={styles.input}
                 placeholder="Ex: 00000-000"
               />
-              {cepLoading && <span style={{position: 'absolute', right: '10px', top: '35px', fontSize: '0.8rem', color: '#6366f1'}}>Buscando...</span>}
+              {cepLoading && <span style={{ position: 'absolute', right: '10px', top: '35px', fontSize: '0.8rem', color: '#6366f1' }}>Buscando...</span>}
             </div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Rua / Logradouro *</label>
@@ -607,7 +615,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
               />
             </div>
           </div>
-          
+
           <div style={styles.formGrid}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Bairro *</label>
@@ -634,7 +642,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
               />
             </div>
           </div>
-          
+
           <div style={styles.formGrid}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Estado *</label>
@@ -669,77 +677,77 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                 />
               </div>
 
-            <div style={{...styles.financialSection, marginTop: '20px'}}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h2 style={styles.sectionTitle}>👨‍👩‍👧‍👦 Dependentes</h2>
-                <button 
-                  type="button" 
-                  onClick={() => setFormData(prev => ({ ...prev, dependents: [...prev.dependents, { name: '', birthDate: '' }] }))}
-                  style={{...styles.submitButton, padding: '8px 15px', fontSize: '14px', backgroundColor: '#28a745'}}
-                >
-                  ➕ Adicionar Dependente
-                </button>
-              </div>
+              <div style={{ ...styles.financialSection, marginTop: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                  <h2 style={styles.sectionTitle}>👨‍👩‍👧‍👦 Dependentes</h2>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, dependents: [...prev.dependents, { name: '', birthDate: '' }] }))}
+                    style={{ ...styles.submitButton, padding: '8px 15px', fontSize: '14px', backgroundColor: '#28a745' }}
+                  >
+                    ➕ Adicionar Dependente
+                  </button>
+                </div>
 
-              {formData.dependents.length === 0 ? (
-                <p style={{ color: '#666', fontSize: '14px', fontStyle: 'italic' }}>Nenhum dependente cadastrado.</p>
-              ) : (
-                formData.dependents.map((dependent, index) => {
-                  const age = dependent.birthDate ? 
-                    Math.floor((new Date().getTime() - new Date(dependent.birthDate).getTime()) / 31557600000) : 
-                    null;
-                    
-                  return (
-                    <div key={index} style={{ display: 'flex', gap: '15px', marginBottom: '15px', alignItems: 'flex-end', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
-                      <div style={{ flex: 2 }}>
-                        <label style={styles.label}>Nome do Dependente</label>
-                        <input
-                          type="text"
-                          value={dependent.name}
-                          onChange={(e) => {
+                {formData.dependents.length === 0 ? (
+                  <p style={{ color: '#666', fontSize: '14px', fontStyle: 'italic' }}>Nenhum dependente cadastrado.</p>
+                ) : (
+                  formData.dependents.map((dependent, index) => {
+                    const age = dependent.birthDate ?
+                      Math.floor((new Date().getTime() - new Date(dependent.birthDate).getTime()) / 31557600000) :
+                      null;
+
+                    return (
+                      <div key={index} style={{ display: 'flex', gap: '15px', marginBottom: '15px', alignItems: 'flex-end', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                        <div style={{ flex: 2 }}>
+                          <label style={styles.label}>Nome do Dependente</label>
+                          <input
+                            type="text"
+                            value={dependent.name}
+                            onChange={(e) => {
+                              const newDeps = [...formData.dependents];
+                              newDeps[index].name = e.target.value;
+                              setFormData({ ...formData, dependents: newDeps });
+                            }}
+                            style={styles.input}
+                            placeholder="Nome completo"
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={styles.label}>Data de Nascimento</label>
+                          <input
+                            type="date"
+                            value={dependent.birthDate || ''}
+                            onChange={(e) => {
+                              const newDeps = [...formData.dependents];
+                              newDeps[index].birthDate = e.target.value;
+                              setFormData({ ...formData, dependents: newDeps });
+                            }}
+                            style={styles.input}
+                          />
+                        </div>
+                        <div style={{ width: '80px', textAlign: 'center', paddingBottom: '10px' }}>
+                          <span style={{ fontWeight: 'bold', color: '#555' }}>
+                            {age !== null && age >= 0 ? `${age} anos` : '-'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
                             const newDeps = [...formData.dependents];
-                            newDeps[index].name = e.target.value;
+                            newDeps.splice(index, 1);
                             setFormData({ ...formData, dependents: newDeps });
                           }}
-                          style={styles.input}
-                          placeholder="Nome completo"
-                        />
+                          style={{ ...styles.clearButton, padding: '10px', backgroundColor: '#dc3545', width: 'auto' }}
+                          title="Remover dependente"
+                        >
+                          🗑️
+                        </button>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <label style={styles.label}>Data de Nascimento</label>
-                        <input
-                          type="date"
-                          value={dependent.birthDate || ''}
-                          onChange={(e) => {
-                            const newDeps = [...formData.dependents];
-                            newDeps[index].birthDate = e.target.value;
-                            setFormData({ ...formData, dependents: newDeps });
-                          }}
-                          style={styles.input}
-                        />
-                      </div>
-                      <div style={{ width: '80px', textAlign: 'center', paddingBottom: '10px' }}>
-                        <span style={{ fontWeight: 'bold', color: '#555' }}>
-                          {age !== null && age >= 0 ? `${age} anos` : '-'}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newDeps = [...formData.dependents];
-                          newDeps.splice(index, 1);
-                          setFormData({ ...formData, dependents: newDeps });
-                        }}
-                        style={{...styles.clearButton, padding: '10px', backgroundColor: '#dc3545', width: 'auto'}}
-                        title="Remover dependente"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
 
@@ -768,11 +776,11 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
             >
               💾 {isLoading ? 'Salvando...' : 'Salvar Usuário'}
             </button>
-            
+
             <button onClick={clearForm} style={styles.clearButton}>
               🗑️ Limpar Formulário
             </button>
-            
+
             {onCancel && (
               <button onClick={onCancel} style={styles.clearButton}>
                 ❌ Cancelar
