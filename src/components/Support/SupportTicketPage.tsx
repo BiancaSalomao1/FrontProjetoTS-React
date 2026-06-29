@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { getAuthHeaders } from '../../utils/auth';
 
 const SupportTicketPage: React.FC = () => {
   const [replyEmail, setReplyEmail] = useState('');
