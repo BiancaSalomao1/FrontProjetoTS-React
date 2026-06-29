@@ -54,7 +54,7 @@ function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [newNotificationText, setNewNotificationText] = useState('');
   const [notifications, setNotifications] = useState([
-    { id: 1, text: 'Bem-vindo ao novo sistema de Gestão CRAS.', author: 'Sistema', time: '1h atrás' }
+    { id: 1, text: 'Bem-vindo ao novo sistema de Gestão Unificação Kardecista RP.', author: 'Sistema', time: '1h atrás' }
   ]);
 
   // Dashboard Stats & Data
