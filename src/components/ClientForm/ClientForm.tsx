@@ -28,8 +28,8 @@ interface ClientData {
   status: string;
   observations: string;
   photoPath?: string;
-  startAssistanceDate?: string;
-  endAssistanceDate?: string;
+  startAssistanceDate?: string | null;
+  endAssistanceDate?: string | null;
 }
 
 const theme = {
