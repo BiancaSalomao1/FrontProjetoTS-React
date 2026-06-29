@@ -54,9 +54,9 @@ const SupportTicketPage: React.FC = () => {
         alert('Erro ao processar e-mail: ' + errorText);
         setStatus('error');
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error('Erro de rede ou chamada:', e);
-      alert('Falha de conexão: ' + e.message);
+      alert('Falha de conexão: ' + (e as Error).message);
       setStatus('error');
       setTimeout(() => setStatus('idle'), 5000);
     }
