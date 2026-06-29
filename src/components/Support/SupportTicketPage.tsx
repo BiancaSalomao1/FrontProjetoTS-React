@@ -32,8 +32,8 @@ const SupportTicketPage: React.FC = () => {
           subject: "Novo Chamado de Suporte ERP",
           from_name: "Sistema ERP",
           replyto: replyEmail,
-          "E-mail para Contato": replyEmail,
-          "Mensagem do Usuário": message
+          email: replyEmail,
+          message: message
         })
       });
 
