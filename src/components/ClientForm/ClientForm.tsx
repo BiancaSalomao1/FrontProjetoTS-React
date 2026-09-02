@@ -117,6 +117,7 @@ const styles = {
 
   photoContainer: {
     display: 'flex',
+    flexWrap: 'wrap',
     gap: theme.spacing.lg,
     alignItems: 'flex-start'
   } as React.CSSProperties,
@@ -145,12 +146,13 @@ const styles = {
   } as React.CSSProperties,
 
   photoUpload: {
-    flex: 1
+    flex: 1,
+    minWidth: '200px'
   } as React.CSSProperties,
 
   formGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
     gap: theme.spacing.lg,
     marginBottom: theme.spacing.lg
   } as React.CSSProperties,
@@ -722,8 +724,8 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                       null;
 
                     return (
-                      <div key={index} style={{ display: 'flex', gap: '15px', marginBottom: '15px', alignItems: 'flex-end', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
-                        <div style={{ flex: 2 }}>
+                      <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px', alignItems: 'flex-end', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                        <div style={{ flex: '2 1 200px' }}>
                           <label style={styles.label}>Nome do Dependente</label>
                           <input
                             type="text"
@@ -737,7 +739,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                             placeholder="Nome completo"
                           />
                         </div>
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: '1 1 150px' }}>
                           <label style={styles.label}>Data de Nascimento</label>
                           <input
                             type="date"
@@ -750,7 +752,7 @@ const ClientRegistrationForm: React.FC<ClientFormProps> = ({ user, onSave, onCan
                             style={styles.input}
                           />
                         </div>
-                        <div style={{ width: '80px', textAlign: 'center', paddingBottom: '10px' }}>
+                        <div style={{ minWidth: '70px', textAlign: 'center', paddingBottom: '10px' }}>
                           <span style={{ fontWeight: 'bold', color: '#555' }}>
                             {age !== null && age >= 0 ? `${age} anos` : '-'}
                           </span>

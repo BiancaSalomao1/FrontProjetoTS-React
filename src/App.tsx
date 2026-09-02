@@ -8,6 +8,7 @@ import LoginPage from './components/Login/LoginPage';
 import SystemUsersPage from './components/SystemUsers/SystemUsersPage';
 import SendMessagePage from './components/Messages/SendMessagePage';
 import SupportTicketPage from './components/Support/SupportTicketPage';
+import ReportsPage from './components/Reports/ReportsPage';
 import { getAuthToken, clearAuthToken, getAuthHeaders, getLoggedInUsername, isAdminUser } from './utils/auth';
 
 export interface Address {
@@ -44,7 +45,8 @@ export interface User {
 
 function App() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [currentPage, setCurrentPage] = useState<'home' | 'form' | 'search' | 'history' | 'routes' | 'skills' | 'system-users' | 'messages' | 'support'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'form' | 'search' | 'history' | 'routes' | 'skills' | 'system-users' | 'messages' | 'support' | 'reports'>('home');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getAuthToken());
   const username = getLoggedInUsername() || 'Assistente';
   const userInitials = username.substring(0, 2).toUpperCase();
@@ -224,9 +226,26 @@ function App() {
       display: 'flex',
       minHeight: '100vh',
       background: '#f8fafc',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      position: 'relative',
+      overflowX: 'hidden'
     }}>
-      {/* 1. Sidebar (Barra Lateral Esquerda) */}
+      {/* Backdrop para Menu Mobile */}
+      {mobileMenuOpen && (
+        <div 
+          onClick={() => setMobileMenuOpen(false)}
+          className="no-print"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 40,
+            transition: 'opacity 0.2s'
+          }}
+        />
+      )}
+
+      {/* 1. Sidebar (Barra Lateral) */}
       <aside className="no-print" style={{
         width: '280px',
         background: '#1e1b4b',
@@ -234,35 +253,59 @@ function App() {
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '4px 0 10px rgba(0,0,0,0.05)',
-        zIndex: 10
+        zIndex: 50,
+        position: window.innerWidth < 768 ? 'fixed' : 'relative',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        transform: window.innerWidth < 768 ? (mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
+        transition: 'transform 0.3s ease-in-out',
+        maxHeight: '100vh'
       }}>
         {/* Sidebar Header */}
         <div style={{
-          padding: '24px',
+          padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          justifyContent: 'space-between',
           borderBottom: '1px solid rgba(255,255,255,0.08)'
         }}>
-          <div style={{
-            background: '#4f46e5',
-            padding: '8px',
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              background: '#4f46e5',
+              padding: '8px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div>
+              <h1 style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: 0 }}>ERP Social</h1>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Assistência Social</span>
+            </div>
           </div>
-          <div>
-            <h1 style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: 0 }}>ERP Social</h1>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Assistência Social</span>
-          </div>
+
+          {/* Botão Fechar no Mobile */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#94a3b8',
+              fontSize: '1.4rem',
+              cursor: 'pointer',
+              display: window.innerWidth < 768 ? 'block' : 'none'
+            }}
+          >
+            ✕
+          </button>
         </div>
 
         {/* Sidebar Navigation */}
@@ -277,7 +320,7 @@ function App() {
           {/* Main Dashboard Link */}
           <div>
             <button
-              onClick={() => setCurrentPage('home')}
+              onClick={() => { setCurrentPage('home'); setMobileMenuOpen(false); }}
               style={{
                 width: '100%',
                 display: 'flex',
@@ -306,7 +349,7 @@ function App() {
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button
-                onClick={() => { setSelectedUser(null); setCurrentPage('form'); }}
+                onClick={() => { setSelectedUser(null); setCurrentPage('form'); setMobileMenuOpen(false); }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -325,7 +368,7 @@ function App() {
                 👥 Nova Família
               </button>
               <button
-                onClick={() => setCurrentPage('search')}
+                onClick={() => { setCurrentPage('search'); setMobileMenuOpen(false); }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -344,7 +387,7 @@ function App() {
                 👤 Assistidos
               </button>
               <button
-                onClick={() => setCurrentPage('routes')}
+                onClick={() => { setCurrentPage('routes'); setMobileMenuOpen(false); }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -363,7 +406,7 @@ function App() {
                 🗺️ Rotas e Mapas
               </button>
               <button
-                onClick={() => setCurrentPage('skills')}
+                onClick={() => { setCurrentPage('skills'); setMobileMenuOpen(false); }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -391,7 +434,28 @@ function App() {
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button
-                onClick={() => setCurrentPage('history')}
+                onClick={() => { setCurrentPage('reports'); setMobileMenuOpen(false); }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: currentPage === 'reports' ? '#4f46e5' : 'transparent',
+                  color: 'white',
+                  fontSize: '0.9rem',
+                  fontWeight: currentPage === 'reports' ? 'bold' : 'normal',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+              >
+                📊 Relatórios
+              </button>
+              <button
+                onClick={() => { setCurrentPage('history'); setMobileMenuOpen(false); }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -410,7 +474,7 @@ function App() {
                 📝 Histórico de Visitas
               </button>
               <button
-                onClick={() => setCurrentPage('messages')}
+                onClick={() => { setCurrentPage('messages'); setMobileMenuOpen(false); }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -439,7 +503,7 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {isAdmin && (
                 <button
-                  onClick={() => setCurrentPage('system-users')}
+                  onClick={() => { setCurrentPage('system-users'); setMobileMenuOpen(false); }}
                   style={{
                     width: '100%',
                     display: 'flex',
@@ -531,46 +595,73 @@ function App() {
       }}>
         {/* Top Header */}
         <header className="no-print" style={{
-          height: '70px',
+          minHeight: '70px',
           background: 'white',
           borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 32px',
-          flexShrink: 0
+          padding: '12px 20px',
+          flexShrink: 0,
+          gap: '16px',
+          flexWrap: 'wrap'
         }}>
-          {/* Top Header Search */}
-          <div style={{
-            position: 'relative',
-            width: '350px'
-          }}>
-            <span style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }}>🔍</span>
-            <input
-              type="text"
-              placeholder="Buscar usuários, famílias, visitas..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setCurrentPage('search');
-                }
-              }}
+          {/* Mobile Hamburger & Logo/Search Container */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '220px' }}>
+            {/* Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               style={{
-                width: '100%',
-                padding: '10px 12px 10px 36px',
-                borderRadius: '8px',
+                background: '#f1f5f9',
                 border: '1px solid #e2e8f0',
-                fontSize: '0.9rem',
-                outline: 'none',
-                background: '#f8fafc'
+                borderRadius: '8px',
+                padding: '8px 12px',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#334155'
               }}
-            />
+              title="Abrir Menu"
+            >
+              ☰
+            </button>
+
+            {/* Top Header Search */}
+            <div style={{
+              position: 'relative',
+              flex: 1,
+              maxWidth: '380px'
+            }}>
+              <span style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Buscar usuários, famílias..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setCurrentPage('search');
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px 10px 36px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  background: '#f8fafc',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
           </div>
 
           {/* Top Header Profile & Notifications */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '24px'
+            gap: '16px'
           }}>
             {/* Notification Bell */}
             <div style={{ position: 'relative' }}>
@@ -718,7 +809,7 @@ function App() {
         <main style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '32px',
+          padding: '20px',
           minWidth: 0
         }}>
           {currentPage === 'home' && (
@@ -870,14 +961,26 @@ function App() {
                     <strong style={{ fontSize: '0.9rem', color: '#1e293b', display: 'block', marginBottom: '4px' }}>Habilidades</strong>
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Gerenciar competências</span>
                   </div>
+
+                  {/* Ação 6: Relatórios */}
+                  <div 
+                    onClick={() => setCurrentPage('reports')}
+                    style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', textAlign: 'center', cursor: 'pointer', transition: 'transform 0.2s', background: '#f8fafc' }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <span style={{ fontSize: '2rem', display: 'block', marginBottom: '12px' }}>📊</span>
+                    <strong style={{ fontSize: '0.9rem', color: '#1e293b', display: 'block', marginBottom: '4px' }}>Relatórios</strong>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Consultar faixas etárias e tempo</span>
+                  </div>
                 </div>
               </div>
 
               {/* Two Column Layout: Upcoming Visits vs Map */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-                gap: '32px'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '24px'
               }}>
                 {/* Left: Próximas visitas */}
                 <div style={{ background: 'white', borderRadius: '16px', padding: '28px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
@@ -1145,6 +1248,20 @@ function App() {
                 </button>
               </div>
               <SendMessagePage />
+            </div>
+          )}
+
+          {currentPage === 'reports' && (
+            <div style={{ background: 'white', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+              <div className="no-print" style={{ padding: '20px', borderBottom: '1px solid #e2e8f0' }}>
+                <button
+                  onClick={() => setCurrentPage('home')}
+                  style={{ background: '#f1f5f9', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', color: '#475569' }}
+                >
+                  ← Voltar ao Início
+                </button>
+              </div>
+              <ReportsPage />
             </div>
           )}
 
